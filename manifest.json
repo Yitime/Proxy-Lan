@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "小蓝代理工具",
+  "version": "3.5.0",
+  "description": "轻松快捷地管理和切换多个代理设置。",
+  "icons": {
+    "16": "img/icons/omega-action-16.png",
+    "24": "img/icons/omega-action-24.png",
+    "32": "img/icons/omega-action-32.png",
+    "48": "img/icons/omega-48.png",
+    "64": "img/icons/omega-64.png",
+    "128": "img/icons/omega-128.png"
+  },
+  "default_locale": "zh_CN",
+  "action": {
+    "default_icon": {
+      "16": "img/icons/omega-action-16.png",
+      "19": "img/icons/omega-action-19.png",
+      "24": "img/icons/omega-action-24.png",
+      "32": "img/icons/omega-action-32.png"
+    },
+    "default_title": "__MSG_manifest_icon_default_title__",
+    "default_popup": "popup-iframe.html"
+  },
+  "background": {
+    "service_worker": "x-background.js",
+    "type": "module"
+  },
+  "minimum_chrome_version": "88",
+  "options_page": "options.html",
+  "options_ui": {
+    "page": "options.html",
+    "browser_style": false,
+    "open_in_tab": true
+  },
+  "permissions": [
+    "proxy",
+    "tabs",
+    "alarms",
+    "storage",
+    "unlimitedStorage",
+    "webRequest",
+    "webRequestAuthProvider",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}

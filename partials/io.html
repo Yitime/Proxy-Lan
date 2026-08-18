@@ -1,0 +1,30 @@
+
+<div class="page-header">
+  <h2>{{'options_tab_importExport' | tr}}</h2>
+</div>
+<section class="settings-group">
+  <h3>{{'options_group_importExportProfile' | tr}}</h3>
+  <div class="help-block">
+    <div class="text-info"><span class="glyphicon glyphicon-info-sign"></span> {{'options_exportProfileHelp' | tr}}
+    </div>
+  </div>
+  <div ng-show="!(options[&quot;-showConditionTypes&quot;] &gt; 0)" class="checkbox">
+    <label>
+      <input type="checkbox" ng-model="options[&quot;-exportLegacyRuleList&quot;]"/><span>{{'options_exportLegacyRuleList' | tr}}</span>
+    </label>
+    <p omega-html="'options_exportLegacyRuleListHelp' | tr" class="help-block"></p>
+  </div>
+</section>
+<section class="settings-group">
+  <h3>{{'options_group_importExportSettings' | tr}}</h3>
+  <p>
+    <button ng-click="exportOptions()" class="btn btn-default"><span class="glyphicon glyphicon-floppy-save"></span> {{'options_makeBackup' | tr}}
+    </button><span class="help-inline">{{'options_makeBackupHelp' | tr}}</span>
+  </p>
+  <p>
+    <input id="restore-local-file" type="file" omega-upload="restoreLocal($content)" omega-error="restoreLocalError($error)"/>
+    <button ng-click="triggerFileInput()" ladda="restoringLocal" data-spinner-color="#000000" class="btn btn-default"><span class="glyphicon glyphicon-folder-open"></span> {{'options_restoreLocal' | tr}}
+    </button><span class="help-inline">{{'options_restoreLocalHelp' | tr}}</span>
+  </p>
+</section>
+
