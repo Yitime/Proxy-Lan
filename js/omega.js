@@ -1285,9 +1285,59 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile) {
+  angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, $window, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile) {
     var advancedConditionTypesExpanded, attachedReady, attachedReadyDefer, basicConditionTypeSet, basicConditionTypesExpanded, expandGroups, exportLegacyRuleList, exportRuleList, oldLastUpdate, oldRuleList, oldSourceUrl, onAttachedChange, parseOmegaRules, parseSource, rulesReady, rulesReadyDefer, stateEditorKey, stopWatchingForRules, type, unwatchRules, unwatchRulesShowNote, updateHasConditionTypes, _i, _len;
     $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
+    $scope.ruleSelection = {};
+    $scope.ruleBatchAll = false;
+    $scope.ruleBatch = { profileName: '' };
+
+    $scope.selectedRuleIndexes = function() {
+      return Object.keys($scope.ruleSelection || {})
+        .filter(function(index) { return $scope.ruleSelection[index]; })
+        .map(Number)
+        .sort(function(a, b) { return b - a; });
+    };
+
+    $scope.selectedRuleCount = function() {
+      return $scope.selectedRuleIndexes().length;
+    };
+
+    $scope.updateRuleSelection = function() {
+      $scope.ruleBatchAll = $scope.profile && $scope.profile.rules.length > 0 &&
+        $scope.selectedRuleCount() === $scope.profile.rules.length;
+    };
+
+    $scope.toggleAllRules = function() {
+      $scope.ruleSelection = {};
+      ($scope.profile.rules || []).forEach(function(rule, index) {
+        $scope.ruleSelection[index] = $scope.ruleBatchAll;
+      });
+    };
+
+    $scope.applyBatchProfile = function() {
+      var indexes = $scope.selectedRuleIndexes();
+      if (!indexes.length || !$scope.ruleBatch.profileName) return;
+      indexes.forEach(function(index) {
+        if ($scope.profile.rules[index]) {
+          $scope.profile.rules[index].profileName = $scope.ruleBatch.profileName;
+        }
+      });
+      $scope.ruleSelection = {};
+      $scope.ruleBatchAll = false;
+    };
+
+    $scope.deleteSelectedRules = function() {
+      var indexes = $scope.selectedRuleIndexes();
+      if (!indexes.length) return;
+      if (!$window.confirm(trFilter('options_ruleBatchDeleteConfirm', [indexes.length]))) return;
+      indexes.forEach(function(index) {
+        $scope.profile.rules.splice(index, 1);
+      });
+      $scope.ruleSelection = {};
+      $scope.ruleBatchAll = false;
+    };
+
     exportRuleList = function() {
       var blob, eol, fileName, info, text;
       text = OmegaPac.RuleList.Switchy.compose({

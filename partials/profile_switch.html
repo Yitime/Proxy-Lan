@@ -28,6 +28,23 @@
     <div ng-show="editSource" class="rules-source">
       <textarea ng-model="source.code" rows="20" ng-change="source.touched = true; $root.optionsDirty = true" class="monospace form-control width-limit"></textarea>
     </div>
+    <div ng-if="loadRules" ng-show="!editSource" class="rule-batch-toolbar">
+      <label class="rule-batch-select-all">
+        <input type="checkbox" ng-model="ruleBatchAll" ng-change="toggleAllRules()">
+        <span>{{'options_ruleBatchSelectAll' | tr}}</span>
+      </label>
+      <span class="rule-batch-count">{{'options_ruleBatchSelected' | tr}}: {{selectedRuleCount()}}</span>
+      <div omega-profile-select="options | profiles:profile" ng-model="ruleBatch.profileName"
+           disp-name="dispNameFilter" options="options" class="rule-batch-profile"></div>
+      <button type="button" class="btn btn-default btn-sm" ng-click="applyBatchProfile()"
+              ng-disabled="!selectedRuleCount() || !ruleBatch.profileName">
+        <span class="glyphicon glyphicon-ok"></span> {{'options_ruleBatchApply' | tr}}
+      </button>
+      <button type="button" class="btn btn-danger btn-sm" ng-click="deleteSelectedRules()"
+              ng-disabled="!selectedRuleCount()">
+        <span class="glyphicon glyphicon-trash"></span> {{'options_ruleBatchDelete' | tr}}
+      </button>
+    </div>
     <div ng-if="loadRules" ng-show="!editSource" class="table-responsive switch-rules-wrapper">
       <table class="switch-rules table table-bordered table-condensed width-limit-xl">
         <thead>
@@ -44,7 +61,10 @@
         </thead>
         <tbody ui-sortable="sortableOptions" ng-model="profile.rules">
           <tr ng-repeat="rule in profile.rules" class="switch-rule-row">
-            <td class="sort-bar"><span class="glyphicon glyphicon-sort"></span></td>
+            <td class="sort-bar">
+              <label class="rule-select"><input type="checkbox" ng-model="ruleSelection[$index]" ng-change="updateRuleSelection()"></label>
+              <span class="glyphicon glyphicon-sort"></span>
+            </td>
             <td ng-class="{&quot;has-icon&quot;: isUrlConditionType[rule.condition.conditionType]}">
               <select ng-model="rule.condition.conditionType" ng-options="type.type as (&quot;condition_&quot; + type.type | tr) group by (type.group | tr) for type in conditionTypes" class="form-control"></select><a ng-href="{{&quot;condition_alert_fullUrlLimitationLink&quot; | tr}}" target="_blank" ng-if="isUrlConditionType[rule.condition.conditionType]" class="icon-wrapper"><span class="glyphicon glyphicon-alert text-danger"></span></a>
             </td>

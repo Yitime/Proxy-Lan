@@ -344,3 +344,38 @@ a:focus-visible {
   color: var(--primary-color);
   font-weight: 600;
 }
+
+.rule-batch-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.rule-batch-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.rule-batch-count {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.rule-batch-profile {
+  min-width: 180px;
+}
+
+.rule-select {
+  display: inline-flex;
+  margin: 0 6px 0 0;
+  vertical-align: middle;
+}
