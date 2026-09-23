@@ -1,31 +1,29 @@
 (function() {
   var keyHandler = {
-    38: moveUp, // Up
-    40: moveDown, // Down
-    37: closeDropdown, // Left
-    39: openDropdown, // Right
-
-    72: closeDropdown, // h
-    74: moveDown, // j
-    75: moveUp, // k
-    76: openDropdown, // l
-
-    191: showKeyboardHelp, // /
-    63: showKeyboardHelp, // ?
-
-    48: 'js-direct', // 0
-    83: 'js-system', // s
-    69: 'js-external', // e
-    65: 'js-addrule', // a
-    187: 'js-addrule', // +, =
-    84: 'js-temprule', // t
-    79: 'js-option', // o
-    82: 'js-reqinfo', // r
+    ArrowUp: moveUp,
+    ArrowDown: moveDown,
+    ArrowLeft: closeDropdown,
+    ArrowRight: openDropdown,
+    h: closeDropdown,
+    j: moveDown,
+    k: moveUp,
+    l: openDropdown,
+    '/': showKeyboardHelp,
+    '?': showKeyboardHelp,
+    0: 'js-direct',
+    s: 'js-system',
+    e: 'js-external',
+    a: 'js-addrule',
+    '+': 'js-addrule',
+    '=': 'js-addrule',
+    t: 'js-temprule',
+    o: 'js-option',
+    r: 'js-reqinfo'
   };
 
   var i;
   for (i = 1; i <= 9; i++) {
-    keyHandler[48 + i] = 'js-profile-' + i;
+    keyHandler[i] = 'js-profile-' + i;
   }
 
   var walker;
@@ -39,9 +37,11 @@
     );
 
     window.addEventListener('keydown', function(e) {
-      var handler = keyHandler[e.keyCode];
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      var handler = keyHandler[e.key];
       if (handler == null) return;
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+      e.preventDefault();
       if (typeof handler === 'string') {
         clickById(handler);
       } else {

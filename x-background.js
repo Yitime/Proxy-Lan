@@ -4,7 +4,6 @@ import ZeroIndexedDBFactory from './indexedDB.js'
 import "./lib/zero-dependencies/compare-versions/compare-versions.js"
 import "./js/background_preload.js"
 import "./lib/zero-dependencies/idb-keyval/idb-keyval.js"
-import "./lib/zero-dependencies/moment/moment-with-locales.js"
 import "./lib/zero-dependencies/csso/csso.js"
 import './log.js'
 import "./js/log_error.js"

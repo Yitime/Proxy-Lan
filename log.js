@@ -12,14 +12,18 @@ const ZeroLogFactory = ()=>{
     if (isRunning) return
     isRunning = true
     try {
-      const _moment = moment()
-      const dayOfWeek = _moment.format('E') // Day of Week (ISO), keep logs max 7 days
+      const now = new Date()
+      const dayOfWeek = String((now.getDay() + 6) % 7 + 1) // ISO day of week, keep logs max 7 days
+      const date = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0')
+      ].join('-')
       const logKey = 'zerolog-' + dayOfWeek
       while (logSequence.length > 0) {
         const str = logSequence.join('\n');
         logSequence.length = 0;
         let logInfo = await idbKeyval.get(logKey, logStore)
-        let date = _moment.format('YYYY-MM-DD')
         if (!logInfo || !logInfo.date) {
           logInfo = { date: date, val: ''}
         }
@@ -39,7 +43,17 @@ const ZeroLogFactory = ()=>{
 
 
   const logFn = (str)=>{
-    logSequence.push(moment().format('YYYY-MM-DD HH:mm:ss   ') + ` ` + str)
+    const now = new Date();
+    const timestamp = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0')
+    ].join('-') + ' ' + [
+      String(now.getHours()).padStart(2, '0'),
+      String(now.getMinutes()).padStart(2, '0'),
+      String(now.getSeconds()).padStart(2, '0')
+    ].join(':');
+    logSequence.push(timestamp + '   ' + str)
     _logFn()
   }
 

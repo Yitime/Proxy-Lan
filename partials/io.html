@@ -1,30 +1,49 @@
-
 <div class="page-header">
   <h2>{{'options_tab_importExport' | tr}}</h2>
 </div>
-<section class="settings-group">
-  <h3>{{'options_group_importExportProfile' | tr}}</h3>
-  <div class="help-block">
-    <div class="text-info"><span class="glyphicon glyphicon-info-sign"></span> {{'options_exportProfileHelp' | tr}}
+
+<div class="io-grid">
+  <section class="io-card">
+    <div class="io-card-icon io-card-icon-export" aria-hidden="true">
+      <span class="glyphicon glyphicon-floppy-save"></span>
     </div>
-  </div>
+    <div class="io-card-body">
+      <h3>{{'options_ioExportTitle' | tr}}</h3>
+      <p class="help-block">{{'options_makeBackupHelp' | tr}}</p>
+      <button ng-click="exportOptions()" class="btn btn-primary">
+        <span class="glyphicon glyphicon-download-alt"></span>
+        {{'options_makeBackup' | tr}}
+      </button>
+    </div>
+  </section>
+
+  <section class="io-card">
+    <div class="io-card-icon io-card-icon-import" aria-hidden="true">
+      <span class="glyphicon glyphicon-folder-open"></span>
+    </div>
+    <div class="io-card-body">
+      <h3>{{'options_ioImportTitle' | tr}}</h3>
+      <p class="help-block">{{'options_restoreLocalHelp' | tr}}</p>
+      <input id="restore-local-file" class="omega-file-input" type="file"
+             accept=".bak,.json,application/json"
+             omega-upload="restoreLocal($content)"
+             omega-error="restoreLocalError($error)"/>
+      <button ng-click="triggerFileInput()" ladda="restoringLocal"
+              data-spinner-color="#000000" class="btn btn-default">
+        <span class="glyphicon glyphicon-upload"></span>
+        {{'options_restoreLocal' | tr}}
+      </button>
+    </div>
+  </section>
+</div>
+
+<section class="settings-group io-advanced">
+  <h3>{{'options_ioAdvanced' | tr}}</h3>
   <div ng-show="!(options[&quot;-showConditionTypes&quot;] &gt; 0)" class="checkbox">
     <label>
-      <input type="checkbox" ng-model="options[&quot;-exportLegacyRuleList&quot;]"/><span>{{'options_exportLegacyRuleList' | tr}}</span>
+      <input type="checkbox" ng-model="options[&quot;-exportLegacyRuleList&quot;]"/>
+      <span>{{'options_exportLegacyRuleList' | tr}}</span>
     </label>
     <p omega-html="'options_exportLegacyRuleListHelp' | tr" class="help-block"></p>
   </div>
 </section>
-<section class="settings-group">
-  <h3>{{'options_group_importExportSettings' | tr}}</h3>
-  <p>
-    <button ng-click="exportOptions()" class="btn btn-default"><span class="glyphicon glyphicon-floppy-save"></span> {{'options_makeBackup' | tr}}
-    </button><span class="help-inline">{{'options_makeBackupHelp' | tr}}</span>
-  </p>
-  <p>
-    <input id="restore-local-file" type="file" omega-upload="restoreLocal($content)" omega-error="restoreLocalError($error)"/>
-    <button ng-click="triggerFileInput()" ladda="restoringLocal" data-spinner-color="#000000" class="btn btn-default"><span class="glyphicon glyphicon-folder-open"></span> {{'options_restoreLocal' | tr}}
-    </button><span class="help-inline">{{'options_restoreLocalHelp' | tr}}</span>
-  </p>
-</section>
-

@@ -354,11 +354,11 @@
       return $rootScope.applyOptionsConfirm().then(function() {
         var blob, content, filename, plainOptions;
         plainOptions = angular.fromJson(angular.toJson($rootScope.options));
-        content = JSON.stringify(plainOptions);
+        content = JSON.stringify(plainOptions, null, 2);
         blob = new Blob([content], {
-          type: "text/plain;charset=utf-8"
+          type: "application/json;charset=utf-8"
         });
-        filename = "ZeroOmegaOptions-" + (new Date().toISOString()) + ".bak";
+        filename = "Proxy-Lan-options-" + (new Date().toISOString().slice(0, 19).replaceAll(':', '-')) + ".json";
         return downloadFile(blob, filename);
       });
     };
@@ -371,19 +371,29 @@
     };
     $scope.restoreLocal = function(content) {
       $scope.restoringLocal = true;
+      try {
+        var parsed = JSON.parse(content);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          throw new Error('Backup must contain a JSON object');
+        }
+      } catch (error) {
+        $scope.restoringLocal = false;
+        return $scope.restoreLocalError(error);
+      }
       return $rootScope.resetOptions(content).then((function() {
         return $scope.importSuccess();
-      }), function() {
-        return $scope.restoreLocalError();
+      }), function(error) {
+        return $scope.restoreLocalError(error);
       })["finally"](function() {
         return $scope.restoringLocal = false;
       });
     };
-    $scope.restoreLocalError = function() {
+    $scope.restoreLocalError = function(error) {
+      console.error('Unable to import options backup', error);
       return $rootScope.showAlert({
         type: 'error',
         i18n: 'options_importFormatError',
-        message: 'Invalid backup file!'
+        message: error && error.message ? error.message : 'Invalid backup file!'
       });
     };
     $scope.downloadError = function() {
