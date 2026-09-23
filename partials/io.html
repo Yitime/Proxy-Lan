@@ -37,6 +37,12 @@
   </section>
 </div>
 
+<section class="settings-group io-sync-status" ng-if="syncOptions">
+  <h3>{{'options_syncStatusTitle' | tr}}</h3>
+  <p class="help-block">{{'options_syncStatusHint' | tr}}</p>
+  <p class="sync-status-value">{{syncOptions === 'conflict' ? ('options_syncStatusConflict' | tr) : ('options_syncStatusActive' | tr)}}</p>
+</section>
+
 <section class="settings-group io-advanced">
   <h3>{{'options_ioAdvanced' | tr}}</h3>
   <div ng-show="!(options[&quot;-showConditionTypes&quot;] &gt; 0)" class="checkbox">

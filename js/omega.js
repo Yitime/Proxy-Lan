@@ -1125,7 +1125,66 @@
     $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
     $scope.ruleListFeedback = '';
     $scope.ruleListValidation = null;
+    $scope.ruleListSearch = '';
+    $scope.ruleListReplace = '';
+    $scope.ruleListMatchCount = 0;
+    $scope.ruleTester = { url: '' };
+    $scope.ruleTestResult = null;
     var ruleListValidationTimer = null;
+
+    $scope.updateRuleListMatchCount = function() {
+      var text = $scope.profile && $scope.profile.ruleList || '';
+      var query = $scope.ruleListSearch || '';
+      if (!query) {
+        $scope.ruleListMatchCount = 0;
+        return;
+      }
+      var count = 0;
+      var index = 0;
+      while ((index = text.indexOf(query, index)) >= 0) {
+        count++;
+        index += query.length;
+      }
+      $scope.ruleListMatchCount = count;
+    };
+
+    $scope.replaceRuleListText = function() {
+      if (!$scope.profile || !$scope.ruleListSearch) return;
+      var text = $scope.profile.ruleList || '';
+      var search = $scope.ruleListSearch;
+      var replacement = $scope.ruleListReplace || '';
+      $scope.profile.ruleList = text.split(search).join(replacement);
+      $scope.updateRuleListMatchCount();
+      $scope.validateRuleList();
+      $scope.ruleListFeedback = trFilter('options_ruleListReplaced', [$scope.ruleListMatchCount]);
+    };
+
+    $scope.testRuleList = function() {
+      if (!$scope.profile || !$scope.ruleTester.url) return;
+      try {
+        var request = OmegaPac.Conditions.requestFromUrl($scope.ruleTester.url);
+        var handler = OmegaPac.RuleList[$scope.profile.format || 'Switchy'];
+        var text = $scope.profile.ruleList || '';
+        if (handler.preprocess) text = handler.preprocess(text);
+        var rules = handler.parse(text, $scope.profile.matchProfileName, $scope.profile.defaultProfileName) || [];
+        var matched = rules.find(function(rule) {
+          return OmegaPac.Conditions.match(rule.condition, request);
+        });
+        var profileName = matched ? matched.profileName : $scope.profile.defaultProfileName;
+        $scope.ruleTestResult = {
+          matched: !!matched,
+          profileName: profileName,
+          message: matched
+            ? trFilter('options_ruleTesterMatched', [profileName])
+            : trFilter('options_ruleTesterDefault', [profileName])
+        };
+      } catch (error) {
+        $scope.ruleTestResult = {
+          matched: false,
+          message: trFilter('options_ruleTesterInvalid') + (error.message ? ': ' + error.message : '')
+        };
+      }
+    };
 
     $scope.validateRuleList = function() {
       var profile = $scope.profile;
@@ -1151,7 +1210,10 @@
     $scope.queueRuleListValidation = function() {
       clearTimeout(ruleListValidationTimer);
       ruleListValidationTimer = setTimeout(function() {
-        $scope.$applyAsync($scope.validateRuleList);
+        $scope.$applyAsync(function() {
+          $scope.validateRuleList();
+          $scope.updateRuleListMatchCount();
+        });
       }, 300);
     };
 

@@ -29,6 +29,19 @@
     <p>
       <button ng-disabled="!profile.sourceUrl" ng-click="updateProfile(profile.name)" ladda="updatingProfile[profile.name]" data-spinner-color="#000000" class="btn btn-default"><span class="glyphicon glyphicon-download-alt"></span> {{'options_downloadProfileNow' | tr}}</button>
     </p>
+    <div class="rule-list-toolbar rule-list-search-toolbar">
+      <label class="rule-list-search-field">
+        <span>{{'options_ruleListSearch' | tr}}</span>
+        <input type="search" class="form-control input-sm" ng-model="ruleListSearch" ng-change="updateRuleListMatchCount()">
+      </label>
+      <label class="rule-list-search-field">
+        <span>{{'options_ruleListReplace' | tr}}</span>
+        <input type="text" class="form-control input-sm" ng-model="ruleListReplace">
+      </label>
+      <button type="button" class="btn btn-default btn-sm" ng-click="replaceRuleListText()" ng-disabled="!ruleListSearch || !ruleListMatchCount">
+        {{'options_ruleListReplaceAll' | tr}} <span ng-if="ruleListMatchCount">({{ruleListMatchCount}})</span>
+      </button>
+    </div>
     <div class="rule-list-toolbar">
       <span class="rule-list-stats">
         {{ruleListStats().lines}} {{'options_ruleListLines' | tr}} · {{ruleListStats().chars}} {{'options_ruleListChars' | tr}}
@@ -58,5 +71,13 @@
     <textarea ng-model="profile.ruleList" ng-change="queueRuleListValidation()" rows="20" ng-readonly="!!profile.sourceUrl" class="monospace form-control width-limit"></textarea>
     <p class="rule-list-feedback" ng-if="ruleListFeedback" aria-live="polite">{{ruleListFeedback}}</p>
     <p class="rule-list-validation" ng-class="{'rule-list-valid': ruleListValidation.valid, 'rule-list-invalid': ruleListValidation.valid === false}" ng-if="ruleListValidation" aria-live="polite">{{ruleListValidation.message}}</p>
+    <section class="rule-tester">
+      <h4>{{'options_ruleTesterTitle' | tr}}</h4>
+      <div class="rule-tester-form">
+        <input type="url" class="form-control" ng-model="ruleTester.url" placeholder="{{'options_ruleTesterPlaceholder' | tr}}">
+        <button type="button" class="btn btn-primary btn-sm" ng-click="testRuleList()" ng-disabled="!ruleTester.url">{{'options_ruleTesterRun' | tr}}</button>
+      </div>
+      <p class="rule-tester-result" ng-if="ruleTestResult" ng-class="{'rule-list-valid': ruleTestResult.matched, 'rule-list-invalid': !ruleTestResult.matched}" aria-live="polite">{{ruleTestResult.message}}</p>
+    </section>
   </section>
 </div>

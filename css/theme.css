@@ -300,3 +300,47 @@ a:focus-visible {
 .rule-list-invalid {
   color: var(--danger-color);
 }
+
+.rule-list-search-toolbar {
+  align-items: end;
+}
+
+.rule-list-search-field {
+  display: flex;
+  flex: 1;
+  min-width: 180px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-tester {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-muted);
+}
+
+.rule-tester h4 {
+  margin-top: 0;
+}
+
+.rule-tester-form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.rule-tester-form input {
+  flex: 1;
+}
+
+.rule-tester-result {
+  margin: var(--space-3) 0 0;
+  font-size: 12px;
+}
+
+.sync-status-value {
+  margin: 0;
+  color: var(--primary-color);
+  font-weight: 600;
+}
