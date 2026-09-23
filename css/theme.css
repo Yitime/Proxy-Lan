@@ -261,3 +261,29 @@ a:focus-visible {
     min-height: 0;
   }
 }
+
+.rule-list-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.rule-list-stats {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.rule-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.rule-list-feedback {
+  margin: var(--space-2) 0 0;
+  color: var(--success-color);
+  font-size: 12px;
+}

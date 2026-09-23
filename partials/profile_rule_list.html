@@ -29,6 +29,23 @@
     <p>
       <button ng-disabled="!profile.sourceUrl" ng-click="updateProfile(profile.name)" ladda="updatingProfile[profile.name]" data-spinner-color="#000000" class="btn btn-default"><span class="glyphicon glyphicon-download-alt"></span> {{'options_downloadProfileNow' | tr}}</button>
     </p>
+    <div class="rule-list-toolbar">
+      <span class="rule-list-stats">
+        {{ruleListStats().lines}} {{'options_ruleListLines' | tr}} · {{ruleListStats().chars}} {{'options_ruleListChars' | tr}}
+      </span>
+      <div class="rule-list-actions">
+        <button type="button" class="btn btn-default btn-sm" ng-click="copyRuleList()" ng-disabled="!profile.ruleList">
+          <span class="glyphicon glyphicon-copy"></span> {{'options_ruleListCopy' | tr}}
+        </button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="downloadRuleList()" ng-disabled="!profile.ruleList">
+          <span class="glyphicon glyphicon-download-alt"></span> {{'options_ruleListDownload' | tr}}
+        </button>
+        <button type="button" class="btn btn-danger btn-sm" ng-click="clearRuleList()" ng-disabled="!!profile.sourceUrl || !profile.ruleList">
+          <span class="glyphicon glyphicon-trash"></span> {{'options_ruleListClear' | tr}}
+        </button>
+      </div>
+    </div>
     <textarea ng-model="profile.ruleList" rows="20" ng-readonly="!!profile.sourceUrl" class="monospace form-control width-limit"></textarea>
+    <p class="rule-list-feedback" ng-if="ruleListFeedback" aria-live="polite">{{ruleListFeedback}}</p>
   </section>
 </div>

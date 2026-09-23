@@ -1121,8 +1121,50 @@
 }).call(this);
 
 (function() {
-  angular.module('omega').controller('RuleListProfileCtrl', function($scope) {
-    return $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
+  angular.module('omega').controller('RuleListProfileCtrl', function($scope, $window, trFilter, downloadFile) {
+    $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
+    $scope.ruleListFeedback = '';
+
+    $scope.ruleListStats = function() {
+      var text = $scope.profile && $scope.profile.ruleList || '';
+      return {
+        lines: text ? text.split('\n').length : 0,
+        chars: text.length
+      };
+    };
+
+    $scope.copyRuleList = function() {
+      var text = $scope.profile && $scope.profile.ruleList || '';
+      var done = function() {
+        $scope.$applyAsync(function() {
+          $scope.ruleListFeedback = trFilter('options_ruleListCopied');
+        });
+      };
+      var failed = function() {
+        $scope.$applyAsync(function() {
+          $scope.ruleListFeedback = trFilter('options_ruleListCopyError');
+        });
+      };
+      if ($window.navigator.clipboard && $window.navigator.clipboard.writeText) {
+        $window.navigator.clipboard.writeText(text).then(done, failed);
+      } else {
+        failed();
+      }
+    };
+
+    $scope.downloadRuleList = function() {
+      var text = $scope.profile && $scope.profile.ruleList || '';
+      var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      var name = ($scope.profile.name || 'rules').replace(/\W+/g, '_');
+      downloadFile(blob, 'Proxy-Lan-rules-' + name + '.txt');
+    };
+
+    $scope.clearRuleList = function() {
+      if (!$scope.profile || $scope.profile.sourceUrl) return;
+      if (!$window.confirm(trFilter('options_ruleListClearConfirm'))) return;
+      $scope.profile.ruleList = '';
+      $scope.ruleListFeedback = trFilter('options_ruleListCleared');
+    };
   });
 
 }).call(this);
