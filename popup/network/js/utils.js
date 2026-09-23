@@ -19,13 +19,25 @@ export const waitTimeout = function(maxTimeout=3000){
 }
 
 export const safeTexts = (str)=> {
-  return str
+  return String(str ?? '')
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;") //&#39; 或 &apos;
-    .replace(/\//g, "&#47;");
+    .replace(/'/g, "&#39;");
+}
+
+export const safeDecodeUri = (value) => {
+  try {
+    return decodeURI(String(value ?? ''));
+  } catch (_) {
+    return String(value ?? '');
+  }
+};
+
+export const safeCssColor = (value) => {
+  const color = String(value ?? '').trim();
+  return globalThis.CSS?.supports?.('color', color) ? color : '';
 }
 
 export const copyToClipoard = (data, opts)=>{

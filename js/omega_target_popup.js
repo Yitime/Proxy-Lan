@@ -8,13 +8,15 @@ function callBackgroundNoReply(method, args, cb) {
   if (cb) return cb();
 }
 
-function callBackground(method, args, cb) {
+function callBackground(method, args, cb, refreshActivePage) {
   chrome.runtime.sendMessage({
     method: method,
     args: args,
+    refreshActivePage: !!refreshActivePage,
   }, function(response) {
     if (chrome.runtime.lastError != null)
       return cb && cb(chrome.runtime.lastError)
+    if (!response) return cb && cb(new Error('Background response is empty'))
     if (response.error) return cb && cb(response.error)
     return cb && cb(null, response.result)
   });
@@ -82,9 +84,9 @@ OmegaTargetPopup = {
       cb = toggle;
       toggle = null;
     }
-    callBackgroundNoReply('addTempRule', [domain, profileName, toggle], cb);
+    callBackground('addTempRule', [domain, profileName, toggle], cb, true);
   },
-  openManage: function(domain, profileName, cb) {
+  openManage: function(cb) {
     chrome.tabs.create({
       url: 'chrome://extensions/?id=' + chrome.runtime.id,
     }, cb);

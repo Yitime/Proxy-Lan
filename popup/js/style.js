@@ -7,7 +7,7 @@
       styleEl.classList.add('om-style')
       if (customCss) {
         document.head.append(styleEl)
-        styleEl.innerHTML = customCss
+        styleEl.textContent = customCss
       }
     })
   }

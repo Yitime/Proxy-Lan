@@ -1,4 +1,4 @@
-import { waitTimeout, safeTexts, copyToClipoard, displayProfileName } from './utils.js'
+import { waitTimeout, safeTexts, safeDecodeUri, copyToClipoard, displayProfileName } from './utils.js'
 import { initTabsSelector } from './tab.js'
 import { initUrlCellDetail } from './url.js'
 import Toastify from "../../../lib/zero-dependencies/toastify/toastify-es.js";
@@ -271,7 +271,10 @@ const createTabulator = () => {
               return "<i class='glyphicon glyphicon-exclamation-sign status-timeout-abort' title='Request timeout abort'/>";
             }
             case "error": {
-              return `<i class='glyphicon glyphicon-exclamation-sign status-error' title='Request error: ${request.error || ''}'/>`;
+              const icon = document.createElement('i');
+              icon.className = 'glyphicon glyphicon-exclamation-sign status-error';
+              icon.title = `Request error: ${request.error || ''}`;
+              return icon;
             }
             case "ongoing": {
               return "<i class='glyphicon glyphicon-circle-arrow-down status-ongoing' title='Request ongoing'/>";
@@ -307,7 +310,7 @@ const createTabulator = () => {
           }
         },
         formatter: (cell)=>{
-          return `<span class="glyphicon glyphicon-duplicate copy-btn" aria-hidden="true"></span><span>${safeTexts(decodeURI(cell.getValue()))}</span>`
+          return `<span class="glyphicon glyphicon-duplicate copy-btn" aria-hidden="true"></span><span>${safeTexts(safeDecodeUri(cell.getValue()))}</span>`
         },
         cellClick: (e, cell)=>{
           if (e && e.target) {

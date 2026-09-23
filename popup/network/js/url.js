@@ -1,4 +1,4 @@
-import { safeTexts, tr, compareProfile, getProfileIcon, displayProfileName } from "./utils.js";
+import { safeTexts, safeCssColor, tr, compareProfile, getProfileIcon, displayProfileName } from "./utils.js";
 import Toastify from "../../../lib/zero-dependencies/toastify/toastify-es.js";
 
 const updateMainBtn = (mainBtnEl, profile, profiles)=>{
@@ -20,7 +20,7 @@ const updateMainBtn = (mainBtnEl, profile, profiles)=>{
   mainBtnEl.dataset.profile = profile.name;
   mainBtnEl.innerHTML = `
     <span>
-      <span class="glyphicon ${iconClass}" style="color: ${targetProfile.color};">
+      <span class="glyphicon ${iconClass}" style="color: ${safeCssColor(targetProfile.color)};">
       </span>
     </span>
     <span>${safeTexts(text)}</span>
@@ -54,7 +54,7 @@ function createMenuItemForProfile(profile, profiles) {
 
   profileDisp.innerHTML = `
       <a href="#" role="button">
-        <span class="glyphicon ${iconClass}" style="color: ${targetProfile.color};"></span>
+        <span class="glyphicon ${iconClass}" style="color: ${safeCssColor(targetProfile.color)};"></span>
         <span class="om-profile-name">${safeTexts(text)}</span>
       </a>
   `
@@ -161,7 +161,7 @@ const generateConditionSuggestion = function (
 };
 
 const getState = ()=>{
-  return new Promise((resolve)=>{
+  return new Promise((resolve, reject)=>{
      OmegaTargetPopup.getState([
       'availableProfiles',
       'currentProfileName',
@@ -174,7 +174,11 @@ const getState = ()=>{
       'lastProfileNameForCondition',
       'customCss',
     ], function(err, state) {
-      resolve(state);
+      if (err) {
+        reject(err instanceof Error ? err : new Error(err.message || String(err)));
+      } else {
+        resolve(state || {});
+      }
     })
   })
 }
@@ -186,7 +190,14 @@ export const initUrlCellDetail = async (cell) => {
   const tabulatorInstance = cell.getTable();
   tabulatorInstance.alert('loading...')
 
-  const state = await getState()
+  let state;
+  try {
+    state = await getState();
+  } catch (error) {
+    console.error('Unable to load network action state', error);
+    tabulatorInstance.alert('加载规则配置失败');
+    return;
+  }
   const {
     availableProfiles,
     lastProfileNameForCondition,
@@ -197,7 +208,13 @@ export const initUrlCellDetail = async (cell) => {
 
   const urlContainerEl = document.createElement("div");
   urlContainerEl.classList.add("url-detail-container");
-  const url = new URL(urlStr);
+  let url;
+  try {
+    url = new URL(urlStr);
+  } catch (_) {
+    tabulatorInstance.alert('无法识别的网址');
+    return;
+  }
   const domain = OmegaPac.getBaseDomain(url.hostname);
   const subdomain = OmegaPac.getSubdomain(urlStr);
 
