@@ -41,6 +41,18 @@ const sortRequest = (a,b)=>{
   return parseInt(a.requestId) - parseInt(b.requestId)
 }
 
+const formatClock = (timestamp) => {
+  const date = new Date(Number(timestamp));
+  return Number.isNaN(date.getTime())
+    ? '-'
+    : date.toLocaleTimeString([], { hour12: false });
+};
+
+const formatDateTime = (timestamp) => {
+  const date = new Date(Number(timestamp));
+  return Number.isNaN(date.getTime()) ? '-' : date.toLocaleString();
+};
+
 const getHeaderValue = (headers, name)=>{
   const result = (headers || []).find((header)=> header.name?.toLowerCase() === name.toLowerCase())
   return result?.value;
@@ -367,9 +379,7 @@ const createTabulator = () => {
         headerSort: true,
         formatter: (cell) => {
           const cellVal = cell.getValue();
-          return `<time title="${moment(cellVal)
-            .toDate()
-            .toLocaleString()}">${moment(cellVal).format("HH:mm:ss")}</time>`;
+          return `<time title="${formatDateTime(cellVal)}">${formatClock(cellVal)}</time>`;
         },
       },
       {

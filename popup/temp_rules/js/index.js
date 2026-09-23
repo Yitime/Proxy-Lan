@@ -62,6 +62,8 @@ const createTabulator = () => {
 
   const tabulatorInstance = new Tabulator(".list-container", {
     height: "100%",
+    selectableRows: true,
+    selectableRowsRangeMode: "click",
     data: rules,
     layout: "fitColumns",
     index: "domain",
@@ -88,6 +90,13 @@ const createTabulator = () => {
     resizableColumnGuide: true,
     placeholder: tr('tempRules_noData'),
     columns: [
+      {
+        formatter: "rowSelection",
+        titleFormatter: "rowSelection",
+        hozAlign: "center",
+        headerSort: false,
+        width: 50
+      },
       {
         title: "#",
         width: 50,
@@ -153,6 +162,8 @@ const initTempToolbar = (tabulatorInstance) => {
   const countLabel = document.getElementById('temp-rule-count-label');
   const deleteAllBtn = document.getElementById('temp-delete-all');
   const deleteAllLabel = document.getElementById('temp-delete-all-label');
+  const deleteSelectedBtn = document.getElementById('temp-delete-selected');
+  const deleteSelectedLabel = document.getElementById('temp-delete-selected-label');
   let confirmTimer = null;
   let deleteArmed = false;
 
@@ -166,6 +177,37 @@ const initTempToolbar = (tabulatorInstance) => {
     clearTimeout(confirmTimer);
     deleteAllBtn?.classList.remove('confirming');
     if (deleteAllLabel) deleteAllLabel.textContent = tr('tempRules_deleteAll');
+  };
+
+  const updateSelectedButton = () => {
+    const count = tabulatorInstance.getSelectedData().length;
+    if (deleteSelectedBtn) deleteSelectedBtn.disabled = count === 0;
+    if (deleteSelectedLabel) {
+      deleteSelectedLabel.textContent = tr('tempRules_deleteSelected') + (count ? ` (${count})` : '');
+    }
+  };
+
+  const deleteSelectedRules = async () => {
+    const selectedRules = tabulatorInstance.getSelectedData();
+    if (!selectedRules.length) return;
+    if (!window.confirm(tr('tempRules_confirmDeleteSelected'))) return;
+    deleteSelectedBtn.disabled = true;
+    tabulatorInstance.alert(tr('tempRules_processing'));
+    try {
+      for (const rule of selectedRules) {
+        await removeTempRule(rule);
+        const row = tabulatorInstance.getRow(rule.domain);
+        row?.delete();
+      }
+      Toastify({ text: tr('tempRules_deleted'), position: 'center' }).showToast();
+    } catch (error) {
+      console.error('Unable to delete selected temporary rules', error);
+      Toastify({ text: tr('tempRules_deleteError'), position: 'center' }).showToast();
+    } finally {
+      tabulatorInstance.clearAlert();
+      updateSelectedButton();
+      updateCount();
+    }
   };
 
   const deleteAllRules = async () => {
@@ -209,6 +251,11 @@ const initTempToolbar = (tabulatorInstance) => {
   if (countLabel) countLabel.textContent = tr('tempRules_countLabel');
   if (deleteAllLabel) deleteAllLabel.textContent = tr('tempRules_deleteAll');
 
+  if (deleteSelectedBtn) {
+    deleteSelectedBtn.addEventListener('click', deleteSelectedRules);
+    if (deleteSelectedLabel) deleteSelectedLabel.textContent = tr('tempRules_deleteSelected');
+  }
+
   if (deleteAllBtn) {
     deleteAllBtn.addEventListener('click', () => {
       if (!deleteArmed) {
@@ -226,6 +273,8 @@ const initTempToolbar = (tabulatorInstance) => {
   ['rowAdded', 'rowDeleted', 'dataChanged', 'dataLoaded'].forEach((eventName) => {
     tabulatorInstance.on(eventName, updateCount);
   });
+  tabulatorInstance.on('rowSelectionChanged', updateSelectedButton);
+  updateSelectedButton();
   updateCount();
 };
 

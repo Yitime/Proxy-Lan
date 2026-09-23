@@ -220,6 +220,73 @@ body {
     flex-direction: column;
     row-gap: 10px;
 }
+.request-overview {
+  padding: 16px;
+  border-bottom: 1px solid var(--selectionBackground);
+  background: var(--lighterBackground);
+}
+
+.request-overview-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.request-method,
+.request-code {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.request-method {
+  background: var(--infoColor);
+  color: var(--whiteColor);
+}
+
+.request-code {
+  background: var(--selectionBackground);
+  color: var(--defaultForeground);
+}
+
+.request-overview-url {
+  overflow: hidden;
+  margin-bottom: 12px;
+  color: var(--lightForeground);
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.request-overview-grid div {
+  min-width: 0;
+}
+
+.request-overview-grid dt {
+  color: var(--darkForeground);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.request-overview-grid dd {
+  overflow: hidden;
+  margin: 2px 0 0;
+  color: var(--defaultForeground);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .url-detail-container .header {
     padding: 5px 10px 10px;
     background: var(--infoColor);

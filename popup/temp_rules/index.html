@@ -21,6 +21,10 @@
         <span class="sr-only" id="temp-search-label">搜索临时规则</span>
         <input id="temp-search" class="form-control" type="search" placeholder="搜索域名、规则或配置……" autocomplete="off">
       </label>
+      <button id="temp-delete-selected" class="btn btn-default" type="button" disabled>
+        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+        <span id="temp-delete-selected-label">删除选中规则</span>
+      </button>
       <button id="temp-delete-all" class="btn btn-danger" type="button">
         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
         <span id="temp-delete-all-label">删除全部临时规则</span>
@@ -31,7 +35,6 @@
   </div>
   <script src="../../lib/jquery/jquery.min.js"></script>
   <script src="../../lib/bootstrap/js/dropdown.js"></script>
-  <script src="../../lib/zero-dependencies/moment/moment-with-locales.js"></script>
   <script src="../../lib/script.js/script.min.js"></script>
   <script src="./js/loader.js"></script>
 </body>

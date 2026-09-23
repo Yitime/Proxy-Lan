@@ -1,4 +1,4 @@
-import { safeTexts, safeCssColor, tr, compareProfile, getProfileIcon, displayProfileName } from "./utils.js";
+import { safeTexts, safeDecodeUri, safeCssColor, tr, compareProfile, getProfileIcon, displayProfileName } from "./utils.js";
 import Toastify from "../../../lib/zero-dependencies/toastify/toastify-es.js";
 
 const updateMainBtn = (mainBtnEl, profile, profiles)=>{
@@ -183,6 +183,22 @@ const getState = ()=>{
   })
 }
 
+const formatBytes = (value) => {
+  const bytes = Number(value || 0);
+  if (!Number.isFinite(bytes) || bytes <= 0) return '-';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const unitIndex = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const amount = bytes / Math.pow(1024, unitIndex);
+  return `${amount.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+};
+
+const getRequestDuration = (request) => {
+  const statusInfo = request.statusInfo || {};
+  const start = Number(statusInfo.start);
+  const end = Number(statusInfo[request.recentlyStatus] || statusInfo.done || statusInfo.error || statusInfo.timeout);
+  return Number.isFinite(start) && Number.isFinite(end) ? Math.max(0, Math.round(end - start)) + 'ms' : '-';
+};
+
 const openNetworkDetail = (contentEl) => {
   document.querySelector('.network-detail-overlay')?.remove();
   const overlayEl = document.createElement('div');
@@ -256,6 +272,19 @@ export const initUrlCellDetail = async (cell) => {
   const shortTitle = request.actionProfile?.shortTitle || currentProfileName || '';
   urlContainerEl.innerHTML = `
   <div class="url-details-container">
+    <section class="request-overview" aria-label="${tr('networkMonitor_requestDetail')}">
+      <div class="request-overview-title">
+        <span class="request-method">${safeTexts(request.method || '-')}</span>
+        <span class="request-code">${safeTexts(request.statusCode || '-')}</span>
+      </div>
+      <div class="request-overview-url" title="${safeTexts(safeDecodeUri(urlStr))}">${safeTexts(safeDecodeUri(urlStr))}</div>
+      <dl class="request-overview-grid">
+        <div><dt>${tr('networkMonitor_requestIp')}</dt><dd>${safeTexts(request.ip || '-')}</dd></div>
+        <div><dt>${tr('networkMonitor_requestDuration')}</dt><dd>${safeTexts(getRequestDuration(request))}</dd></div>
+        <div><dt>${tr('networkMonitor_requestType')}</dt><dd>${safeTexts(request.contentType || '-')}</dd></div>
+        <div><dt>${tr('networkMonitor_requestSize')}</dt><dd>${safeTexts(formatBytes(request.contentLength))}</dd></div>
+      </dl>
+    </section>
     <div class="header">
       <h3>
         ${safeTexts(displayProfileName(shortTitle))}
