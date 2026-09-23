@@ -30,7 +30,7 @@
     </div>
     <div ng-if="loadRules" ng-show="!editSource" class="rule-batch-toolbar">
       <label class="rule-batch-select-all">
-        <input type="checkbox" ng-model="ruleBatchAll" ng-change="toggleAllRules()">
+        <input type="checkbox" ng-checked="ruleBatchAll" ng-click="toggleAllRules($event)">
         <span>{{'options_ruleBatchSelectAll' | tr}}</span>
       </label>
       <span class="rule-batch-count">{{'options_ruleBatchSelected' | tr}}: {{selectedRuleCount()}}</span>
@@ -62,7 +62,7 @@
         <tbody ui-sortable="sortableOptions" ng-model="profile.rules">
           <tr ng-repeat="rule in profile.rules" class="switch-rule-row">
             <td class="sort-bar">
-              <label class="rule-select"><input type="checkbox" ng-model="ruleSelection[$index]" ng-change="updateRuleSelection()"></label>
+              <label class="rule-select"><input type="checkbox" ng-checked="ruleSelection[$index]" ng-click="toggleRuleSelection($index, $event)"></label>
               <span class="glyphicon glyphicon-sort"></span>
             </td>
             <td ng-class="{&quot;has-icon&quot;: isUrlConditionType[rule.condition.conditionType]}">

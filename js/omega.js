@@ -1316,10 +1316,18 @@
         $scope.selectedRuleCount() === $scope.profile.rules.length;
     };
 
-    $scope.toggleAllRules = function() {
+    $scope.toggleRuleSelection = function(index, event) {
+      var checked = !!(event && event.target ? event.target.checked : $scope.ruleSelection[index]);
+      $scope.ruleSelection[index] = checked;
+      $scope.updateRuleSelection();
+    };
+
+    $scope.toggleAllRules = function(event) {
+      var checked = !!(event && event.target ? event.target.checked : !$scope.ruleBatchAll);
+      $scope.ruleBatchAll = checked;
       $scope.ruleSelection = {};
       ($scope.profile.rules || []).forEach(function(rule, index) {
-        $scope.ruleSelection[index] = $scope.ruleBatchAll;
+        $scope.ruleSelection[index] = checked;
       });
     };
 
