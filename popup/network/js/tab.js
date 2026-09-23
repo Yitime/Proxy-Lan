@@ -1,4 +1,6 @@
 
+import { tr } from './utils.js'
+
 let tabInfo = {}
 let selfTabId = null
 
@@ -74,14 +76,14 @@ const updateTabSelectorOptions = (selectedKey) => {
 
     const allOption = document.createElement('option')
     allOption.value = ''
-    allOption.textContent = '(All)All tabs'
+    allOption.textContent = tr('networkMonitor_allTabs') || '(All)All tabs'
     allOption.selected = !currentValue
     fragment.append(allOption)
 
     if (currentValue && !tabInfo[currentValue]) {
       const closedOption = document.createElement('option')
       closedOption.value = currentValue
-      closedOption.textContent = `(${currentValue})(Closed)`
+      closedOption.textContent = `(${currentValue})${tr('networkMonitor_closedTab') || '(Closed)'}`
       closedOption.selected = true
       closedOption.style.color = 'var(--negativeColor, red)'
       closedOption.style.fontWeight = 'bolder'

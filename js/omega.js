@@ -828,7 +828,24 @@
       // Tutorial removed: first-run welcome dialog disabled.
       return;
     };
-    return omegaTarget.refresh();
+    return omegaTarget.refresh().then(function() {
+      var loadingEl = document.getElementById('app-loading');
+      var shellEl = document.getElementById('app-shell');
+      if (loadingEl) loadingEl.hidden = true;
+      if (shellEl) shellEl.hidden = false;
+      document.body.classList.add('app-ready');
+    })["catch"](function(error) {
+      var loadingEl = document.getElementById('app-loading');
+      var errorEl = document.getElementById('app-error');
+      var detailEl = document.getElementById('app-error-detail');
+      if (loadingEl) loadingEl.hidden = true;
+      if (errorEl) errorEl.hidden = false;
+      if (detailEl && error) {
+        detailEl.hidden = false;
+        detailEl.textContent = error.stack || error.message || String(error);
+      }
+      console.error('Unable to load options', error);
+    });
   });
 
 }).call(this);

@@ -32,3 +32,26 @@
   --whiteColor: #fff;
 }
 
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --base00: #111b2e;
+    --base01: #17233a;
+    --base02: #24334e;
+    --base03: #30415f;
+    --base04: #6f819c;
+    --base05: #e5edf9;
+    --base06: #f6f9fd;
+    --base07: #0b1220;
+    --base08: #f87171;
+    --base09: #60a5fa;
+    --base0A: #60a5fa;
+    --base0B: #4ade80;
+    --base0C: #c084fc;
+    --base0D: #fbbf24;
+    --base0E: #fbbf24;
+    --base0F: #f472b6;
+    --whiteColor: #0b1220;
+  }
+}

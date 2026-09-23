@@ -1,6 +1,26 @@
 (function() {
   this.UglifyJS_NoUnsafeEval = true;
 
+  var loadingText = document.getElementById('app-loading-text');
+  var errorTitle = document.getElementById('app-error-title');
+  var errorText = document.getElementById('app-error-text');
+  var retryButton = document.getElementById('app-retry-btn');
+  if (loadingText) {
+    loadingText.textContent = chrome.i18n.getMessage('common_loading') || '正在加载配置……';
+  }
+  if (errorTitle) {
+    errorTitle.textContent = chrome.i18n.getMessage('options_loadErrorTitle') || '配置加载失败';
+  }
+  if (errorText) {
+    errorText.textContent = chrome.i18n.getMessage('options_loadError') || '无法读取代理配置，请重新加载扩展后再试。';
+  }
+  if (retryButton) {
+    retryButton.textContent = chrome.i18n.getMessage('common_retry') || '重新加载';
+    retryButton.addEventListener('click', function() {
+      window.location.reload();
+    });
+  }
+
   $script('lib/angular-loader/angular-loader.min.js', 'angular-loader');
 
   $script('lib/jquery/jquery.min.js', 'jquery');

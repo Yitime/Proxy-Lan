@@ -65,6 +65,158 @@ const updateCurrentTab = (tabId, updateProperties) => new Promise((resolve, reje
 let recentlyRequestId = 0
 let sequenceDataCache = {}
 let autoScrollToBottom = true
+let recordingPaused = false
+let networkFilters = {
+  tabId: null,
+  search: '',
+  status: 'all'
+}
+
+const statusMatchesFilter = (status, filter) => {
+  if (filter === 'all') return true
+  if (filter === 'ongoing') return ['start', 'ongoing'].includes(status)
+  if (filter === 'done') return status === 'done'
+  if (filter === 'fail') return ['error', 'timeout', 'timeoutAbort'].includes(status)
+  return true
+}
+
+const applyNetworkFilters = (tabulatorInstance) => {
+  const query = networkFilters.search.trim().toLowerCase()
+  tabulatorInstance.setFilter((data) => {
+    if (networkFilters.tabId && String(data.tabId) !== String(networkFilters.tabId)) {
+      return false
+    }
+    if (!statusMatchesFilter(data.recentlyStatus, networkFilters.status)) {
+      return false
+    }
+    if (!query) return true
+    return [
+      data.url,
+      data.profileName,
+      data.requestId,
+      data.ip,
+      data.method,
+      data.contentType
+    ].some((value) => String(value || '').toLowerCase().includes(query))
+  })
+}
+
+const updateNetworkSummary = (tabulatorInstance) => {
+  const rows = tabulatorInstance.getData()
+  const counts = { total: rows.length, ongoing: 0, done: 0, fail: 0 }
+  rows.forEach((row) => {
+    if (['start', 'ongoing'].includes(row.recentlyStatus)) counts.ongoing++
+    else if (row.recentlyStatus === 'done') counts.done++
+    else if (['error', 'timeout', 'timeoutAbort'].includes(row.recentlyStatus)) counts.fail++
+  })
+  const values = {
+    total: counts.total,
+    ongoing: counts.ongoing,
+    done: counts.done,
+    fail: counts.fail
+  }
+  Object.entries(values).forEach(([key, value]) => {
+    const el = document.getElementById('network-count-' + key)
+    if (el) el.textContent = String(value)
+  })
+}
+
+const exportNetworkCsv = (tabulatorInstance) => {
+  const rows = tabulatorInstance.getFilteredData?.() || tabulatorInstance.getData()
+  const fields = ['requestId', 'recentlyStatus', 'method', 'url', 'profileName', 'ip', 'statusCode', 'contentType', 'contentLength']
+  const csvCell = (value) => '"' + String(value ?? '').replaceAll('"', '""') + '"'
+  const csv = '\uFEFF' + [
+    fields.map(csvCell).join(','),
+    ...rows.map((row) => fields.map((field) => csvCell(row[field])).join(','))
+  ].join('\r\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'network-requests-' + new Date().toISOString().slice(0, 19).replaceAll(':', '-') + '.csv'
+  link.click()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  Toastify({
+    text: tr('networkMonitor_exportSuccess'),
+    position: 'center'
+  }).showToast()
+}
+
+const initNetworkToolbar = (tabulatorInstance) => {
+  const searchEl = document.getElementById('network-search')
+  const statusEl = document.getElementById('network-status-filter')
+  const recordingBtn = document.getElementById('network-recording-toggle')
+  const recordingLabel = document.getElementById('network-recording-label')
+  const exportBtn = document.getElementById('network-export')
+  const searchLabel = document.getElementById('network-search-label')
+  const exportLabel = document.getElementById('network-export-label')
+  const totalLabel = document.getElementById('network-label-total')
+  const ongoingLabel = document.getElementById('network-label-ongoing')
+  const doneLabel = document.getElementById('network-label-done')
+  const failLabel = document.getElementById('network-label-fail')
+  const statusLabels = {
+    all: tr('networkMonitor_filterAll'),
+    ongoing: tr('networkMonitor_filterOngoing'),
+    done: tr('networkMonitor_filterDone'),
+    fail: tr('networkMonitor_filterFail')
+  }
+
+  if (searchEl) {
+    searchEl.placeholder = tr('networkMonitor_searchPlaceholder')
+    searchEl.addEventListener('input', () => {
+      networkFilters.search = searchEl.value
+      applyNetworkFilters(tabulatorInstance)
+      updateNetworkSummary(tabulatorInstance)
+    })
+  }
+  if (searchLabel) searchLabel.textContent = tr('networkMonitor_searchPlaceholder')
+  if (exportLabel) exportLabel.textContent = tr('networkMonitor_export')
+  if (totalLabel) totalLabel.textContent = tr('networkMonitor_total')
+  if (ongoingLabel) ongoingLabel.textContent = tr('networkMonitor_ongoing')
+  if (doneLabel) doneLabel.textContent = tr('networkMonitor_done')
+  if (failLabel) failLabel.textContent = tr('networkMonitor_failed')
+  if (statusEl) {
+    Array.from(statusEl.options).forEach((option) => {
+      option.textContent = statusLabels[option.value] || option.textContent
+    })
+    statusEl.addEventListener('change', () => {
+      networkFilters.status = statusEl.value
+      applyNetworkFilters(tabulatorInstance)
+      updateNetworkSummary(tabulatorInstance)
+    })
+  }
+
+  const updateRecordingButton = () => {
+    if (!recordingBtn || !recordingLabel) return
+    recordingBtn.setAttribute('aria-pressed', String(recordingPaused))
+    recordingLabel.textContent = recordingPaused ? tr('networkMonitor_resume') : tr('networkMonitor_pause')
+    const icon = recordingBtn.querySelector('.glyphicon')
+    if (icon) icon.className = 'glyphicon ' + (recordingPaused ? 'glyphicon-play' : 'glyphicon-pause')
+  }
+
+  if (recordingBtn) {
+    recordingBtn.addEventListener('click', () => {
+      recordingPaused = !recordingPaused
+      updateRecordingButton()
+      document.dispatchEvent(new CustomEvent(recordingPaused ? 'network-monitor-pause' : 'network-monitor-resume'))
+    })
+  }
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => exportNetworkCsv(tabulatorInstance))
+  }
+
+  let summaryTimer = null
+  const scheduleSummary = () => {
+    clearTimeout(summaryTimer)
+    summaryTimer = setTimeout(() => updateNetworkSummary(tabulatorInstance), 0)
+  }
+  ['rowAdded', 'rowUpdated', 'rowDeleted', 'dataChanged', 'dataLoaded'].forEach((eventName) => {
+    tabulatorInstance.on(eventName, scheduleSummary)
+  })
+  updateRecordingButton()
+  applyNetworkFilters(tabulatorInstance)
+  updateNetworkSummary(tabulatorInstance)
+}
 
 const scrollTabulatorToBottom = (tabulatorInstance)=>{
   const el = tabulatorInstance.rowManager.element
@@ -162,7 +314,7 @@ const createTabulator = () => {
   const tabulatorInstance = new Tabulator(".network-list-container", {
     height: "100%",
     //addRowPos: "top",
-    //placeholder: "loading...",
+    placeholder: tr('networkMonitor_noData'),
     data: [],
     layout: "fitColumns",
     //layout: "fitData",
@@ -438,6 +590,7 @@ function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
     datas.forEach((data)=>{
       sequenceDataCache[data.requestId] = data;
     })
+    if (recordingPaused) return
     if (sequenceUpdateDatas.isRunning) return
     sequenceUpdateDatas.isRunning = true
     try {
@@ -482,6 +635,10 @@ function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
       sequenceUpdateDatas.isRunning = false
     }
   }
+
+  document.addEventListener('network-monitor-resume', function() {
+    sequenceUpdateDatas();
+  });
 
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
@@ -578,23 +735,18 @@ const init = async () => {
     await updateCurrentTab(currentTab.id, {autoDiscardable: false});
   }
   const tabulatorInstance = await createTabulator();
+  initNetworkToolbar(tabulatorInstance);
   const tabsSelectorContainerEl = document.querySelector('.tabs-selector-container')
   let port;
   const tabsSelectorInstance = await initTabsSelector(tabsSelectorContainerEl, {
     setTab: (tab)=>{
-      if (tab && tab.id) {
-        const filterTabId = tab.id;
-        tabulatorInstance.setFilter([{field: 'tabId', type: '=', value: filterTabId}])
-        port?.postMessage({
-          type: 'init',
-          tabId: filterTabId
-        })
-      } else {
-        tabulatorInstance.clearFilter()
-        port?.postMessage({
-          type: 'init',
-        })
-      }
+      networkFilters.tabId = tab && tab.id ? tab.id : null;
+      applyNetworkFilters(tabulatorInstance);
+      updateNetworkSummary(tabulatorInstance);
+      port?.postMessage({
+        type: 'init',
+        ...(networkFilters.tabId ? { tabId: networkFilters.tabId } : {})
+      });
     }
   })
   port = createConnectPort(tabulatorInstance, tabsSelectorInstance);

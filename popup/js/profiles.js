@@ -28,12 +28,29 @@
 
   return;
 
+  function updateCurrentProfileCard(state) {
+    var currentName = state.currentProfileName;
+    var profile = currentName ? state.availableProfiles['+' + currentName] : null;
+    var name = profile ? (OmegaTargetPopup.getMessage('profile_' + profile.name) || profile.name) :
+      (state.isSystemProfile ? OmegaTargetPopup.getMessage('profile_system') :
+        OmegaTargetPopup.getMessage('profile_direct'));
+    var labelEl = document.getElementById('js-current-label');
+    var nameEl = document.getElementById('js-current-name');
+    if (labelEl) {
+      labelEl.textContent = OmegaTargetPopup.getMessage('popup_currentProfile') || '当前配置';
+    }
+    if (nameEl) {
+      nameEl.textContent = name;
+    }
+  }
+
   function updateMenuByState() {
     var state = OmegaPopup.state;
     if (state.proxyNotControllable) {
       location.href = 'proxy_not_controllable.html';
       return;
     }
+    updateCurrentProfileCard(state);
     addProfilesItems(state);
     $script.done('om-profile-items');
     updateOtherItems(state);

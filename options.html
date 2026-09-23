@@ -8,11 +8,27 @@
     <link rel="stylesheet" href="lib/spectrum/spectrum.css">
     <link rel="stylesheet" href="lib/ladda/ladda-themeless.min.css">
     <link rel="stylesheet" href="css/options.css">
+  <link rel="stylesheet" href="css/theme.css">
     <link rel="icon" href="img/icons/omega-action-32.png">
     <style class="om-style">{{customCss}}</style>
   </head>
-  <body style="display: none;" ng-style="{display: options ? &quot;block&quot; : &quot;none&quot;}">
-    <div class="container-fluid">
+  <body>
+    <div id="app-loading" class="app-loading" role="status" aria-live="polite">
+      <div class="app-loading-card">
+        <div class="app-spinner" aria-hidden="true"></div>
+        <h2 id="app-loading-text">正在加载配置……</h2>
+      </div>
+    </div>
+    <div id="app-error" class="app-error" role="alert" hidden>
+      <div class="app-error-card">
+        <div class="app-error-icon" aria-hidden="true">!</div>
+        <h2 id="app-error-title">配置加载失败</h2>
+        <p id="app-error-text">无法读取代理配置，请重新加载扩展后再试。</p>
+        <pre id="app-error-detail" class="app-error-detail" hidden></pre>
+        <button id="app-retry-btn" type="button" class="btn btn-primary">重新加载</button>
+      </div>
+    </div>
+    <div id="app-shell" class="container-fluid" hidden>
       <header class="col-lg-2 col-sm-3 side-nav">
         <h1><span title="{{'about_title' | tr}}">{{'manifest_app_name' | tr}}</span><sup ng-show="isExperimental" class="om-experimental text-danger">{{'options_experimental_badge' | tr}}</sup></h1>
         <nav class="nav nav-pills nav-stacked">

@@ -29,6 +29,36 @@ body {
   color: #000;
 }
 
+.om-current-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 5px 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-color);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 10%, var(--surface-color)), var(--surface-color));
+  box-shadow: 0 6px 18px var(--shadow-color);
+}
+
+.om-current-label {
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.om-current-name {
+  max-width: 12em;
+  overflow: hidden;
+  color: var(--text-color);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Menu */
 
 .om-nav {

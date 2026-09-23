@@ -8,8 +8,37 @@
   <link rel="stylesheet" href="../../lib/zero-dependencies/tabulator/tabulator.css">
   <link rel="stylesheet" href="../../lib/zero-dependencies/toastify/toastify.css">
   <link rel="stylesheet" href="./css/index.css">
+  <link rel="stylesheet" href="../../css/theme.css">
 </head>
 <body>
+  <header class="network-toolbar" aria-label="网络监控工具栏">
+    <div class="network-summary" aria-live="polite">
+      <div class="network-summary-item"><strong id="network-count-total">0</strong><span id="network-label-total">请求数</span></div>
+      <div class="network-summary-item"><strong id="network-count-ongoing">0</strong><span id="network-label-ongoing">进行中</span></div>
+      <div class="network-summary-item"><strong id="network-count-done">0</strong><span id="network-label-done">成功</span></div>
+      <div class="network-summary-item"><strong id="network-count-fail">0</strong><span id="network-label-fail">失败</span></div>
+    </div>
+    <div class="network-actions">
+      <label class="network-search">
+        <span class="sr-only" id="network-search-label">搜索请求</span>
+        <input id="network-search" class="form-control" type="search" placeholder="搜索 URL、配置、IP……" autocomplete="off">
+      </label>
+      <select id="network-status-filter" class="form-control" aria-label="按状态筛选">
+        <option value="all">全部状态</option>
+        <option value="ongoing">进行中</option>
+        <option value="done">成功</option>
+        <option value="fail">失败</option>
+      </select>
+      <button id="network-recording-toggle" class="btn btn-default" type="button" aria-pressed="false">
+        <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>
+        <span id="network-recording-label">暂停记录</span>
+      </button>
+      <button id="network-export" class="btn btn-primary" type="button">
+        <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+        <span id="network-export-label">导出 CSV</span>
+      </button>
+    </div>
+  </header>
   <div class="network-list-container">
   </div>
   <script src="../../lib/jquery/jquery.min.js"></script>
