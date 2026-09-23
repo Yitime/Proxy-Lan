@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "check": "node scripts/validate.mjs",
-    "test": "node --test tests/utils.test.mjs"
+    "test": "node --test tests/utils.test.mjs tests/options-navigation.test.mjs"
   },
   "type": "module"
 }

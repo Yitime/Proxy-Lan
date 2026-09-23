@@ -17,7 +17,7 @@
 
 ```powershell
 node scripts/validate.mjs
-node --test tests/utils.test.mjs
+node --test tests/utils.test.mjs tests/options-navigation.test.mjs
 ```
 
 也可以使用：

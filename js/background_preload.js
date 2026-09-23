@@ -47,13 +47,11 @@
           contexts: ["action"]
         }
       ];
-      if (globalThis.localStorage) {
-        menuItems.push({
-          id: 'options',
-          title: chrome.i18n.getMessage('popup_showOptions'),
-          contexts: ["action"]
-        });
-      }
+      menuItems.push({
+        id: 'options',
+        title: chrome.i18n.getMessage('popup_showOptions'),
+        contexts: ["action"]
+      });
       menuItems.forEach((item) => chrome.contextMenus.create(item));
     });
   };

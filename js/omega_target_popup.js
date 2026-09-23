@@ -39,26 +39,49 @@ OmegaTargetPopup = {
     callBackgroundNoReply('applyProfile', [name], cb);
   },
   openOptions: function (hash, cb) {
-    var options_url = chrome.runtime.getURL('options.html');
-    var url = options_url + (hash || '');
+    var called = false;
+    var optionsUrl = chrome.runtime.getURL('options.html');
+    var targetUrl = optionsUrl + (hash || '');
+    var done = function() {
+      if (called) return;
+      called = true;
+      if (cb) cb();
+    };
+    var fallback = function() {
+      chrome.tabs.create({ url: targetUrl }, done);
+    };
 
-    chrome.tabs.query({
-      url: options_url + '*'
-    }, function(tabs) {
-      if (!chrome.runtime.lastError && tabs && tabs.length > 0) {
-        var props = {
-          active: true
-        };
-        if (hash) {
-          props.url = url;
-        }
-        chrome.tabs.update(tabs[0].id, props);
-      } else {
-        chrome.tabs.create({
-          url: url
+    if (!hash && chrome.runtime.openOptionsPage) {
+      try {
+        var result = chrome.runtime.openOptionsPage(function() {
+          if (chrome.runtime.lastError) {
+            fallback();
+          } else {
+            done();
+          }
         });
+        if (result && typeof result.then === 'function') {
+          result.then(done, fallback);
+        }
+        return;
+      } catch (_) {}
+    }
+
+    chrome.tabs.query({}, function(tabs) {
+      if (chrome.runtime.lastError) {
+        return fallback();
       }
-      if (cb) return cb();
+      var existing = (tabs || []).find(function(tab) {
+        var tabUrl = tab.pendingUrl || tab.url || '';
+        return tabUrl.indexOf(optionsUrl) === 0;
+      });
+      if (existing) {
+        var updateProperties = { active: true };
+        if (hash) updateProperties.url = targetUrl;
+        chrome.tabs.update(existing.id, updateProperties, done);
+      } else {
+        fallback();
+      }
     });
   },
   getActivePageInfo: function(cb) {
