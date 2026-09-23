@@ -183,6 +183,35 @@ const getState = ()=>{
   })
 }
 
+const openNetworkDetail = (contentEl) => {
+  document.querySelector('.network-detail-overlay')?.remove();
+  const overlayEl = document.createElement('div');
+  overlayEl.className = 'network-detail-overlay';
+  const drawerEl = document.createElement('aside');
+  drawerEl.className = 'network-detail-drawer';
+  drawerEl.setAttribute('role', 'dialog');
+  drawerEl.setAttribute('aria-modal', 'true');
+  drawerEl.setAttribute('aria-label', tr('networkMonitor_requestDetail'));
+  contentEl.classList.add('network-detail-content');
+  drawerEl.append(contentEl);
+  overlayEl.append(drawerEl);
+  document.body.append(overlayEl);
+
+  const closeDetail = () => {
+    document.removeEventListener('keydown', onKeydown);
+    overlayEl.remove();
+  };
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') closeDetail();
+  };
+  overlayEl.addEventListener('click', (event) => {
+    if (event.target === overlayEl) closeDetail();
+  });
+  document.addEventListener('keydown', onKeydown);
+  requestAnimationFrame(() => drawerEl.querySelector('.close-btn')?.focus());
+  return closeDetail;
+};
+
 export const initUrlCellDetail = async (cell) => {
 
   const urlStr = cell.getValue();
@@ -312,13 +341,15 @@ export const initUrlCellDetail = async (cell) => {
     typeEl.value
   ];
 
+  tabulatorInstance.clearAlert();
+  const closeDetail = openNetworkDetail(urlContainerEl);
   urlContainerEl.querySelector(".close-btn").onclick = () => {
-    tabulatorInstance.clearAlert();
+    closeDetail();
   };
   urlContainerEl.querySelector(".add-temp-condition-btn").onclick = () => {
     const mainBtnEl = urlContainerEl.querySelector('.omega-profile-select .dropdown-toggle');
     const profileName = mainBtnEl.dataset.profile;
-    tabulatorInstance.clearAlert();
+    closeDetail();
     OmegaTargetPopup.addTempRule(domain, profileName, 1, ()=>{
       OmegaTargetPopup.setState('lastProfileNameForCondition', profileName, ()=>{
         Toastify({
@@ -334,7 +365,7 @@ export const initUrlCellDetail = async (cell) => {
     const mainBtnEl = urlContainerEl.querySelector('.omega-profile-select .dropdown-toggle');
     const profileName = mainBtnEl.dataset.profile;
     const pattern = detailEl.value;
-    tabulatorInstance.clearAlert();
+    closeDetail();
     OmegaTargetPopup.addCondition([{
       conditionType: typeEl.value || 'HostWildcardCondition',
       pattern
@@ -352,5 +383,5 @@ export const initUrlCellDetail = async (cell) => {
   }
 
 
-  tabulatorInstance.alert(urlContainerEl);
+
 };

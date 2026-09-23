@@ -11,6 +11,22 @@
   <link rel="stylesheet" href="../../css/theme.css">
 </head>
 <body>
+  <header class="temp-toolbar" aria-label="临时规则工具栏">
+    <div class="temp-summary">
+      <strong id="temp-rule-count">0</strong>
+      <span id="temp-rule-count-label">条临时规则</span>
+    </div>
+    <div class="temp-actions">
+      <label class="temp-search">
+        <span class="sr-only" id="temp-search-label">搜索临时规则</span>
+        <input id="temp-search" class="form-control" type="search" placeholder="搜索域名、规则或配置……" autocomplete="off">
+      </label>
+      <button id="temp-delete-all" class="btn btn-danger" type="button">
+        <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
+        <span id="temp-delete-all-label">删除全部临时规则</span>
+      </button>
+    </div>
+  </header>
   <div class="list-container">
   </div>
   <script src="../../lib/jquery/jquery.min.js"></script>

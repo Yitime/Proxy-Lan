@@ -1,5 +1,4 @@
 import Toastify from "../../../lib/zero-dependencies/toastify/toastify-es.js";
-import { filesize} from "../../../lib/zero-dependencies/filesize/filesize.esm.js";
 import {
   Tabulator,
   TooltipModule,
@@ -16,6 +15,7 @@ import {
   SelectRangeModule,
   KeybindingsModule,
 } from "../../../lib/zero-dependencies/tabulator/tabulator_esm.js";
+
 Tabulator.registerModule([
   TooltipModule,
   ValidateModule,
@@ -32,137 +32,206 @@ Tabulator.registerModule([
   KeybindingsModule,
 ]);
 
-const tr = function(){
-  const args = arguments
-  if (chrome?.i18n?.getMessage){
-    return chrome.i18n.getMessage.apply(null, args)
-  }
-  return args[0] || ''
-}
+const tr = (...args) => globalThis.chrome?.i18n?.getMessage
+  ? chrome.i18n.getMessage(...args)
+  : (args[0] || '');
 
-const removeTempRule = (rule)=>{
-  return new Promise((resolve)=>{
-    window.OmegaTargetPopup.addTempRule(rule.domain, rule.profileName, -1, ()=>{
-      resolve();
-    })
-  })
-}
+const removeTempRule = (rule) => new Promise((resolve, reject) => {
+  window.OmegaTargetPopup.addTempRule(rule.domain, rule.profileName, -1, (error) => {
+    if (error) reject(error);
+    else resolve();
+  });
+});
+
+const createDeleteButton = () => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'btn btn-link btn-sm temp-delete-btn';
+  button.title = tr('tempRules_action');
+  button.setAttribute('aria-label', tr('tempRules_action'));
+  button.innerHTML = '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span>';
+  return button;
+};
 
 const createTabulator = () => {
-  const createFooterElement = () => {
-    const footerEl = document.createElement("div");
-    footerEl.className = "tabulator-footer";
-    const footerContentsEl = document.createElement("div");
-    footerContentsEl.className = "tabulator-footer-contents";
-    footerEl.append(footerContentsEl);
-
-    const paginatorEl = document.createElement("span");
-    paginatorEl.className = "tabulator-paginator";
-    footerContentsEl.append(paginatorEl);
-    const paginatorBtnsEl = document.createElement("span")
-    paginatorBtnsEl.classList.add('btn-group')
-
-
-    const clearBtnEl = document.createElement('button')
-    clearBtnEl.classList.add('btn', 'btn-default', 'btn-sm');
-    clearBtnEl.innerHTML = `
-      <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-      ${tr('tempRules_deleteAll')}
-    `
-    clearBtnEl.onclick = async ()=> {
-      tabulatorInstance.alert(tr('tempRules_processing'))
-      const rules = tabulatorInstance.getData()
-      for (let _i=0; _i< rules.length; _i++) {
-        await removeTempRule(rules[_i]);
-      }
-      tabulatorInstance.clearData();
-      tabulatorInstance.clearAlert();
-    }
-    paginatorBtnsEl.append(clearBtnEl);
-    paginatorEl.append(paginatorBtnsEl)
-    return footerEl;
-  };
-  const tempProfileRules = window.OmegaPopup.tempProfileRules;
-  const rules = Object.keys(tempProfileRules).map((domain)=>{
-    return {
-      ...tempProfileRules[domain],
-      domain
-    }
-  })
+  const tempProfileRules = window.OmegaPopup.tempProfileRules || {};
+  const rules = Object.keys(tempProfileRules).map((domain) => ({
+    ...tempProfileRules[domain],
+    domain
+  }));
 
   const tabulatorInstance = new Tabulator(".list-container", {
     height: "100%",
-    //addRowPos: "top",
-    //placeholder: "loading...",
     data: rules,
     layout: "fitColumns",
-    //layout: "fitData",
     index: "domain",
-    //renderVertical: 'basic',
     columnDefaults: {
-      headerClick: (e, column)=>{
-        const def = column.getDefinition()
+      headerClick: (e, column) => {
+        const def = column.getDefinition();
         if (!def.headerSort) return;
-        const sorters = tabulatorInstance.getSorters()
-        const result = sorters.find((sorter)=> {
+        const sorters = tabulatorInstance.getSorters();
+        sorters.find((sorter) => {
           if (sorter.column === column && sorter.dir === 'asc') {
-            const currSort = sorter.field + '_' + sorter.dir
+            const currSort = sorter.field + '_' + sorter.dir;
             if (tabulatorInstance.__prevSort === currSort) {
-              tabulatorInstance.clearSort()
-              tabulatorInstance.__prevSort = null
+              tabulatorInstance.clearSort();
+              tabulatorInstance.__prevSort = null;
             } else {
               tabulatorInstance.__prevSort = currSort;
             }
-            return true
+            return true;
           }
-          return false
-        })
+          return false;
+        });
       }
     },
-    footerElement: createFooterElement(),
-    resizableColumnGuide:true,
+    resizableColumnGuide: true,
     placeholder: tr('tempRules_noData'),
     columns: [
-      //Define Table Columns
-      {title:"#", width: 20, maxWidth: 100, field:"domain", hozAlign: 'center', headerHozAlign: 'center', formatter:"rownum",headerSort:false, frozen: true},
       {
-        title: "Domain",
-        field: "domain"
+        title: "#",
+        width: 50,
+        field: "domain",
+        hozAlign: 'center',
+        headerHozAlign: 'center',
+        formatter: "rownum",
+        headerSort: false,
+        frozen: true
       },
       {
-        title: "Pattern",
+        title: tr('tempRules_domain'),
+        field: "domain",
+        minWidth: 180
+      },
+      {
+        title: tr('tempRules_pattern'),
         field: "condition.pattern",
-        hozAlign: "center",
-        headerHozAlign: "center",
+        minWidth: 180,
         headerSort: true
       },
       {
-        title: "Profile",
+        title: tr('tempRules_profile'),
         field: "profileName",
-        width: 300,
+        minWidth: 180
       },
-      {field: "domain", formatter:"buttonCross",
-        topCalc:"count", width:30, hozAlign:"center", headerSort: false,
-        cellClick:function(e, cell){
-          const rule = cell.getRow().getData()
-          removeTempRule(rule);
-          cell.getRow().delete();
+      {
+        title: tr('tempRules_action'),
+        field: "domain",
+        width: 70,
+        hozAlign: "center",
+        headerSort: false,
+        formatter: () => createDeleteButton(),
+        cellClick: async (e, cell) => {
+          const rule = cell.getRow().getData();
+          if (!window.confirm(tr('tempRules_deleteConfirm'))) return;
+          try {
+            await removeTempRule(rule);
+            cell.getRow().delete();
+            Toastify({ text: tr('tempRules_deleted'), position: 'center' }).showToast();
+          } catch (error) {
+            console.error('Unable to delete temporary rule', error);
+            Toastify({ text: tr('tempRules_deleteError'), position: 'center' }).showToast();
+          }
         }
       }
     ],
   });
 
-
-  return new Promise((resolve)=>{
-    const onTableBuilt = ()=>{
-      tabulatorInstance.off('tableBuilt', onTableBuilt)
+  return new Promise((resolve) => {
+    const onTableBuilt = () => {
+      tabulatorInstance.off('tableBuilt', onTableBuilt);
       resolve(tabulatorInstance);
+    };
+    tabulatorInstance.on('tableBuilt', onTableBuilt);
+  });
+};
+
+const initTempToolbar = (tabulatorInstance) => {
+  const searchEl = document.getElementById('temp-search');
+  const searchLabel = document.getElementById('temp-search-label');
+  const countEl = document.getElementById('temp-rule-count');
+  const countLabel = document.getElementById('temp-rule-count-label');
+  const deleteAllBtn = document.getElementById('temp-delete-all');
+  const deleteAllLabel = document.getElementById('temp-delete-all-label');
+  let confirmTimer = null;
+  let deleteArmed = false;
+
+  const updateCount = () => {
+    const rows = tabulatorInstance.getFilteredData?.() || tabulatorInstance.getData();
+    if (countEl) countEl.textContent = String(rows.length);
+  };
+
+  const resetDeleteButton = () => {
+    deleteArmed = false;
+    clearTimeout(confirmTimer);
+    deleteAllBtn?.classList.remove('confirming');
+    if (deleteAllLabel) deleteAllLabel.textContent = tr('tempRules_deleteAll');
+  };
+
+  const deleteAllRules = async () => {
+    if (!deleteAllBtn) return;
+    deleteAllBtn.disabled = true;
+    tabulatorInstance.alert(tr('tempRules_processing'));
+    try {
+      const rules = tabulatorInstance.getData();
+      for (const rule of rules) {
+        await removeTempRule(rule);
+      }
+      tabulatorInstance.clearData();
+      Toastify({ text: tr('tempRules_deleted'), position: 'center' }).showToast();
+    } catch (error) {
+      console.error('Unable to delete temporary rules', error);
+      Toastify({ text: tr('tempRules_deleteError'), position: 'center' }).showToast();
+    } finally {
+      tabulatorInstance.clearAlert();
+      deleteAllBtn.disabled = false;
+      resetDeleteButton();
+      updateCount();
     }
-    tabulatorInstance.on('tableBuilt', onTableBuilt)
-  })
+  };
+
+  if (searchEl) {
+    searchEl.placeholder = tr('tempRules_searchPlaceholder');
+    searchEl.addEventListener('input', () => {
+      const query = searchEl.value.trim().toLowerCase();
+      tabulatorInstance.setFilter((rule) => {
+        if (!query) return true;
+        return [
+          rule.domain,
+          rule.condition?.pattern,
+          rule.profileName
+        ].some((value) => String(value || '').toLowerCase().includes(query));
+      });
+      updateCount();
+    });
+  }
+  if (searchLabel) searchLabel.textContent = tr('tempRules_searchPlaceholder');
+  if (countLabel) countLabel.textContent = tr('tempRules_countLabel');
+  if (deleteAllLabel) deleteAllLabel.textContent = tr('tempRules_deleteAll');
+
+  if (deleteAllBtn) {
+    deleteAllBtn.addEventListener('click', () => {
+      if (!deleteArmed) {
+        deleteArmed = true;
+        deleteAllBtn.classList.add('confirming');
+        if (deleteAllLabel) deleteAllLabel.textContent = tr('tempRules_confirmDeleteAll');
+        clearTimeout(confirmTimer);
+        confirmTimer = setTimeout(resetDeleteButton, 4000);
+        return;
+      }
+      deleteAllRules();
+    });
+  }
+
+  ['rowAdded', 'rowDeleted', 'dataChanged', 'dataLoaded'].forEach((eventName) => {
+    tabulatorInstance.on(eventName, updateCount);
+  });
+  updateCount();
 };
 
 const init = async () => {
   const tabulatorInstance = await createTabulator();
+  initTempToolbar(tabulatorInstance);
 };
+
 init();

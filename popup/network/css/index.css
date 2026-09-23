@@ -187,8 +187,29 @@ body {
   opacity: .3;
 }
 
+.network-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(15, 23, 42, 0.48);
+}
+
+.network-detail-drawer {
+  width: min(560px, 100%);
+  height: 100%;
+  overflow: auto;
+  background: var(--defaultBackground);
+  box-shadow: -18px 0 50px rgba(15, 23, 42, 0.24);
+}
+
+.network-detail-content {
+  min-height: 100%;
+}
+
 .url-detail-container {
-    width: 500px;
+    width: 100%;
     background: var(--defaultBackground);
     color: var(--defaultForeground);
     position: relative;
@@ -220,4 +241,25 @@ body {
   bottom: 100%;
   max-height: 400px;
   overflow-y: auto;
+}
+
+
+.url-detail-container .footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--selectionBackground);
+}
+
+@media (max-width: 600px) {
+  .network-detail-drawer {
+    width: 100%;
+  }
+
+  .url-detail-container .footer .btn {
+    flex: 1;
+  }
 }
