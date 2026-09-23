@@ -1124,6 +1124,57 @@
   angular.module('omega').controller('RuleListProfileCtrl', function($scope, $window, trFilter, downloadFile) {
     $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
     $scope.ruleListFeedback = '';
+    $scope.ruleListValidation = null;
+    var ruleListValidationTimer = null;
+
+    $scope.validateRuleList = function() {
+      var profile = $scope.profile;
+      if (!profile) return;
+      try {
+        var handler = OmegaPac.RuleList[profile.format || 'Switchy'];
+        if (!handler) throw new Error('Unsupported rule list format');
+        var text = profile.ruleList || '';
+        if (handler.preprocess) text = handler.preprocess(text);
+        var rules = handler.parse(text, profile.matchProfileName, profile.defaultProfileName) || [];
+        $scope.ruleListValidation = {
+          valid: true,
+          message: trFilter('options_ruleListRuleCount', [rules.length])
+        };
+      } catch (error) {
+        $scope.ruleListValidation = {
+          valid: false,
+          message: trFilter('options_ruleListInvalid') + (error.message ? ': ' + error.message : '')
+        };
+      }
+    };
+
+    $scope.queueRuleListValidation = function() {
+      clearTimeout(ruleListValidationTimer);
+      ruleListValidationTimer = setTimeout(function() {
+        $scope.$applyAsync($scope.validateRuleList);
+      }, 300);
+    };
+
+    $scope.importRuleList = function(content) {
+      if (!$scope.profile || typeof content !== 'string') {
+        return $scope.ruleListImportError(new Error('Rule list content must be text'));
+      }
+      $scope.profile.ruleList = content;
+      $scope.validateRuleList();
+      $scope.ruleListFeedback = trFilter('options_ruleListImported');
+    };
+
+    $scope.ruleListImportError = function(error) {
+      console.error('Unable to import rule list', error);
+      $scope.ruleListValidation = {
+        valid: false,
+        message: trFilter('options_ruleListImportError')
+      };
+    };
+
+    $scope.triggerRuleListImport = function() {
+      angular.element('#rule-list-file').click();
+    };
 
     $scope.ruleListStats = function() {
       var text = $scope.profile && $scope.profile.ruleList || '';

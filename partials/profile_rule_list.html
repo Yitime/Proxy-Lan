@@ -34,6 +34,16 @@
         {{ruleListStats().lines}} {{'options_ruleListLines' | tr}} · {{ruleListStats().chars}} {{'options_ruleListChars' | tr}}
       </span>
       <div class="rule-list-actions">
+        <input id="rule-list-file" class="omega-file-input" type="file"
+               accept=".txt,.sorl,.ssrl,text/plain"
+               omega-upload="importRuleList($content)"
+               omega-error="ruleListImportError($error)"/>
+        <button type="button" class="btn btn-default btn-sm" ng-click="triggerRuleListImport()">
+          <span class="glyphicon glyphicon-import"></span> {{'options_ruleListImport' | tr}}
+        </button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="validateRuleList()">
+          <span class="glyphicon glyphicon-ok-circle"></span> {{'options_ruleListValidate' | tr}}
+        </button>
         <button type="button" class="btn btn-default btn-sm" ng-click="copyRuleList()" ng-disabled="!profile.ruleList">
           <span class="glyphicon glyphicon-copy"></span> {{'options_ruleListCopy' | tr}}
         </button>
@@ -45,7 +55,8 @@
         </button>
       </div>
     </div>
-    <textarea ng-model="profile.ruleList" rows="20" ng-readonly="!!profile.sourceUrl" class="monospace form-control width-limit"></textarea>
+    <textarea ng-model="profile.ruleList" ng-change="queueRuleListValidation()" rows="20" ng-readonly="!!profile.sourceUrl" class="monospace form-control width-limit"></textarea>
     <p class="rule-list-feedback" ng-if="ruleListFeedback" aria-live="polite">{{ruleListFeedback}}</p>
+    <p class="rule-list-validation" ng-class="{'rule-list-valid': ruleListValidation.valid, 'rule-list-invalid': ruleListValidation.valid === false}" ng-if="ruleListValidation" aria-live="polite">{{ruleListValidation.message}}</p>
   </section>
 </div>

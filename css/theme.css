@@ -287,3 +287,16 @@ a:focus-visible {
   color: var(--success-color);
   font-size: 12px;
 }
+
+.rule-list-validation {
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+}
+
+.rule-list-valid {
+  color: var(--success-color);
+}
+
+.rule-list-invalid {
+  color: var(--danger-color);
+}
