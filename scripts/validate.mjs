@@ -65,6 +65,29 @@ for (const htmlFile of files.filter((file) => file.endsWith('.html') && !relativ
   }
 }
 
+for (const file of customJavaScript) {
+  const source = fs.readFileSync(file, 'utf8')
+  for (const match of source.matchAll(/\$script\(\s*(?:'([^']+)'|\[([^\]]+)\])/g)) {
+    const refs = match[1]
+      ? [match[1]]
+      : [...(match[2] || '').matchAll(/'([^']+)'/g)].map((item) => item[1])
+    for (const ref of refs) {
+      if (!ref.endsWith('.js') || ref.includes('$') || ref.includes('{')) continue
+      const sourceDir = path.dirname(file)
+      const candidates = [
+        path.resolve(root, ref),
+        path.resolve(sourceDir, ref),
+        path.resolve(sourceDir, '..', ref),
+        path.resolve(sourceDir, '..', '..', ref),
+        path.resolve(sourceDir, '..', '..', '..', ref)
+      ]
+      if (!candidates.some((candidate) => fs.existsSync(candidate))) {
+        fail('Dynamic script reference missing: ' + relative(file) + ' -> ' + ref)
+      }
+    }
+  }
+}
+
 const messages = JSON.parse(fs.readFileSync(path.join(root, '_locales/zh_CN/messages.json'), 'utf8'))
 const localizationKeys = new Set()
 for (const file of [...customJavaScript, ...files.filter((file) => file.endsWith('.html') && !relative(file).startsWith('partials/')), ...files.filter((file) => relative(file).startsWith('partials/') && file.endsWith('.html'))]) {
