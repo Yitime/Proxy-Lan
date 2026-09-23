@@ -67,10 +67,10 @@ const createTabulator = () => {
     clearBtnEl.classList.add('btn', 'btn-default', 'btn-sm');
     clearBtnEl.innerHTML = `
       <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
-      Delete all temp rules
+      ${tr('tempRules_deleteAll')}
     `
     clearBtnEl.onclick = async ()=> {
-      tabulatorInstance.alert('Processing...')
+      tabulatorInstance.alert(tr('tempRules_processing'))
       const rules = tabulatorInstance.getData()
       for (let _i=0; _i< rules.length; _i++) {
         await removeTempRule(rules[_i]);
@@ -121,7 +121,7 @@ const createTabulator = () => {
     },
     footerElement: createFooterElement(),
     resizableColumnGuide:true,
-    placeholder: "No Data",
+    placeholder: tr('tempRules_noData'),
     columns: [
       //Define Table Columns
       {title:"#", width: 20, maxWidth: 100, field:"domain", hozAlign: 'center', headerHozAlign: 'center', formatter:"rownum",headerSort:false, frozen: true},

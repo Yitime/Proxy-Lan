@@ -1,4 +1,4 @@
-import { waitTimeout, safeTexts, safeDecodeUri, copyToClipoard, displayProfileName } from './utils.js'
+import { waitTimeout, safeTexts, safeDecodeUri, copyToClipoard, displayProfileName, tr } from './utils.js'
 import { initTabsSelector } from './tab.js'
 import { initUrlCellDetail } from './url.js'
 import Toastify from "../../../lib/zero-dependencies/toastify/toastify-es.js";
@@ -546,7 +546,7 @@ function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
   const onDisconnect = () => {
     port.onMessage.removeListener(onMessage);
     port.onDisconnect.removeListener(onDisconnect);
-    tabulatorInstance.alert('连接已断开，请刷新此页面以继续网络监控。')
+    tabulatorInstance.alert(tr('networkMonitor_disconnected'))
   };
   port.onDisconnect.addListener(onDisconnect);
   port.onMessage.addListener(onMessage);

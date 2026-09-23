@@ -111,7 +111,7 @@
     }
     if (omegaDebug.reportIssue == null) {
       omegaDebug.reportIssue = function() {
-        $window.open('https://github.com/FelisCatus/SwitchyOmega/issues/new?title=&body=');
+        $window.open('https://github.com/Yitime/Proxy-Lan/issues/new?title=&body=');
       };
     }
     if (omegaDebug.resetOptions == null) {

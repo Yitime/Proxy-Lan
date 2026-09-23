@@ -19,8 +19,8 @@
   }, false);
 
   closeButton.textContent = OmegaTargetPopup.getMessage('dialog_cancel');
-  learnMoreButton.textContent = 'Learn More'
-    //OmegaTargetPopup.getMessage('popup_proxyNotControllableLearnMore');
+  learnMoreButton.textContent =
+    OmegaTargetPopup.getMessage('popup_proxyNotControllableLearnMore') || 'Learn More';
   manageButton.textContent = OmegaTargetPopup.getMessage(
     'popup_proxyNotControllableManage');
 

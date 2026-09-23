@@ -195,7 +195,7 @@ export const initUrlCellDetail = async (cell) => {
     state = await getState();
   } catch (error) {
     console.error('Unable to load network action state', error);
-    tabulatorInstance.alert('加载规则配置失败');
+    tabulatorInstance.alert(tr('networkMonitor_loadStateError'));
     return;
   }
   const {
@@ -212,7 +212,7 @@ export const initUrlCellDetail = async (cell) => {
   try {
     url = new URL(urlStr);
   } catch (_) {
-    tabulatorInstance.alert('无法识别的网址');
+    tabulatorInstance.alert(tr('networkMonitor_invalidUrl'));
     return;
   }
   const domain = OmegaPac.getBaseDomain(url.hostname);
@@ -282,8 +282,8 @@ export const initUrlCellDetail = async (cell) => {
       <button class="btn btn-default close-btn" type="button">${tr(
         "dialog_close"
       )}</button>
-      <button class="btn btn-default add-temp-condition-btn" type="button">添加临时条件</button>
-      <button class="btn btn-primary add-condition-btn" type="button">添加条件</button>
+      <button class="btn btn-default add-temp-condition-btn" type="button">${tr('networkMonitor_addTempCondition')}</button>
+      <button class="btn btn-primary add-condition-btn" type="button">${tr('networkMonitor_addCondition')}</button>
     </div>
   </div>
   `;
@@ -322,7 +322,7 @@ export const initUrlCellDetail = async (cell) => {
     OmegaTargetPopup.addTempRule(domain, profileName, 1, ()=>{
       OmegaTargetPopup.setState('lastProfileNameForCondition', profileName, ()=>{
         Toastify({
-          text: "添加临时条件成功",
+          text: tr('networkMonitor_addTempConditionSuccess'),
           position: "center",
         }).showToast();
       })
@@ -341,7 +341,7 @@ export const initUrlCellDetail = async (cell) => {
     }], profileName, ()=>{
       OmegaTargetPopup.setState('lastProfileNameForCondition', profileName, ()=>{
         Toastify({
-          text: "添加条件成功",
+          text: tr('networkMonitor_addConditionSuccess'),
           position: "center",
         }).showToast();
       })

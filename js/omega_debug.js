@@ -61,7 +61,7 @@
     reportIssue: function() {
       return idbKeyval.get('lastError', logStore).then(function(lastError) {
         var body, env, err, extensionVersion, finalUrl, projectVersion, url;
-        url = 'https://github.com/suziwen/ZeroOmega/issues/new?title=&body=';
+        url = 'https://github.com/Yitime/Proxy-Lan/issues/new?title=&body=';
         finalUrl = url;
         try {
           projectVersion = OmegaDebug.getProjectVersion();
