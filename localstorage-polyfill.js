@@ -7,7 +7,7 @@ let valuesMap = new Map()
 class LocalStorage {
   getItem (key) {
     const stringKey = String(key)
-    if (valuesMap.has(key)) {
+    if (valuesMap.has(stringKey)) {
       return String(valuesMap.get(stringKey))
     }
     return null
@@ -18,7 +18,7 @@ class LocalStorage {
   }
 
   removeItem (key) {
-    valuesMap.delete(key)
+    valuesMap.delete(String(key))
   }
 
   clear () {
@@ -58,7 +58,7 @@ const zeroLocalStorage = new Proxy(instance, {
     if (LocalStorage.prototype.hasOwnProperty(name)) {
       return instance[name]
     }
-    if (valuesMap.has(name)) {
+    if (valuesMap.has(String(name))) {
       return instance.getItem(name)
     }
   }

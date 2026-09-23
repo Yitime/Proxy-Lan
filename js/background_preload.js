@@ -14,41 +14,48 @@
     if (!chrome.contextMenus) {
       return;
     }
-    chrome.contextMenus.removeAll();
-    chrome.contextMenus.create({
-      id: 'enableQuickSwitch',
-      title: chrome.i18n.getMessage('contextMenu_enableQuickSwitch'),
-      type: 'checkbox',
-      checked: false,
-      contexts: ["action"]
+    chrome.contextMenus.removeAll(function() {
+      if (chrome.runtime.lastError) {
+        console.error('Unable to clear context menus', chrome.runtime.lastError);
+      }
+      const menuItems = [
+        {
+          id: 'enableQuickSwitch',
+          title: chrome.i18n.getMessage('contextMenu_enableQuickSwitch'),
+          type: 'checkbox',
+          checked: false,
+          contexts: ["action"]
+        },
+        {
+          id: 'network',
+          title: chrome.i18n.getMessage('contextMenu_networkMonitor'),
+          contexts: ["action"]
+        },
+        {
+          id: 'tempRulesManager',
+          title: chrome.i18n.getMessage('contextMenu_tempRulesManager'),
+          contexts: ["action"]
+        },
+        {
+          id: 'reportIssue',
+          title: chrome.i18n.getMessage('popup_reportIssues'),
+          contexts: ["action"]
+        },
+        {
+          id: 'reload',
+          title: chrome.i18n.getMessage('popup_Reload'),
+          contexts: ["action"]
+        }
+      ];
+      if (globalThis.localStorage) {
+        menuItems.push({
+          id: 'options',
+          title: chrome.i18n.getMessage('popup_showOptions'),
+          contexts: ["action"]
+        });
+      }
+      menuItems.forEach((item) => chrome.contextMenus.create(item));
     });
-    chrome.contextMenus.create({
-      id: 'network',
-      title: chrome.i18n.getMessage('contextMenu_networkMonitor'),
-      contexts: ["action"]
-    });
-    chrome.contextMenus.create({
-      id: 'tempRulesManager',
-      title: chrome.i18n.getMessage('contextMenu_tempRulesManager'),
-      contexts: ["action"]
-    });
-    chrome.contextMenus.create({
-      id: 'reportIssue',
-      title: chrome.i18n.getMessage('popup_reportIssues'),
-      contexts: ["action"]
-    });
-    chrome.contextMenus.create({
-      id: 'reload',
-      title: chrome.i18n.getMessage('popup_Reload'),
-      contexts: ["action"]
-    });
-    if (!!globalThis.localStorage) {
-      return chrome.contextMenus.create({
-        id: 'options',
-        title: chrome.i18n.getMessage('popup_showOptions'),
-        contexts: ["action"]
-      });
-    }
   };
 
   initContextMenu();
@@ -64,7 +71,7 @@
           });
         case 'tempRulesManager':
           url = chrome.runtime.getURL('popup/temp_rules/index.html');
-          return tab = chrome.tabs.query({
+          return chrome.tabs.query({
             url: url
           }, function(tabs) {
             var props;
@@ -80,7 +87,7 @@
             }
           });
         case 'options':
-          return browser.runtime.openOptionsPage();
+          return (globalThis.browser || chrome).runtime.openOptionsPage();
         case 'reload':
           return chrome.runtime.reload();
         case 'reportIssue':

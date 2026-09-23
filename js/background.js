@@ -249,7 +249,7 @@
           icon = drawIcon(resultColor, profileColor);
         }
         shortTitle = currentName;
-        if (profile.name !== currentName) {
+        if (profile.name !== current.name) {
           shortTitle += ' => ' + profile.name;
         }
         if (options._options['-showResultProfileOnActionBadgeText']) {
@@ -462,11 +462,14 @@
         title = details;
         shortTitle = details;
       }
-      if (external && current.profileType !== 'SystemProfile') {
+      if (external && current && current.profileType !== 'SystemProfile') {
         message = chrome.i18n.getMessage('browserAction_titleExternalProxy');
         title = message + '\n' + title;
         shortTitle = 'Omega-Extern: ' + details;
         options.setBadge();
+      }
+      if (!current) {
+        return tabs.resetAll({});
       }
       if (!current.name || !OmegaPac.Profiles.isInclusive(current)) {
         icon = drawIcon(current.color);
@@ -500,8 +503,12 @@
         active: true,
         lastFocusedWindow: true
       }, function(tabs) {
-        var url;
-        url = tabs[0].pendingUrl || tabs[0].url;
+        var activeTab, url;
+        activeTab = tabs && tabs[0];
+        if (!activeTab) {
+          return;
+        }
+        url = activeTab.pendingUrl || activeTab.url;
         if (!url) {
           return;
         }
@@ -514,12 +521,12 @@
         if (url.substr(0, 4) === 'moz-') {
           return;
         }
-        if (tabs[0].pendingUrl) {
-          return chrome.tabs.update(tabs[0].id, {
+        if (activeTab.pendingUrl) {
+          return chrome.tabs.update(activeTab.id, {
             url: url
           });
         } else {
-          return chrome.tabs.reload(tabs[0].id, {
+          return chrome.tabs.reload(activeTab.id, {
             bypassCache: true
           });
         }
@@ -527,21 +534,66 @@
     };
     resetAllOptions = function() {
       return options.ready.then(function() {
+        var logStore, syncStore;
         if (typeof options._watchStop === "function") {
           options._watchStop();
         }
         if (typeof options._syncWatchStop === "function") {
           options._syncWatchStop();
         }
-        return Promise.all([chrome.storage.sync.clear(), chrome.storage.local.clear()]);
+        logStore = idbKeyval.createStore('log-store', 'log-store');
+        syncStore = idbKeyval.createStore('sync-store', 'sync');
+        return Promise.all([
+          chrome.storage.sync.clear(),
+          chrome.storage.local.clear(),
+          idbKeyval.clear(logStore),
+          idbKeyval.clear(syncStore),
+          idbKeyval.clear()
+        ]);
       });
     };
     return chrome.runtime.onMessage.addListener(function(request, sender, respond) {
+      var allowedMethods, args, method, reply, target;
       if (!(request && request.method)) {
         return;
       }
+      if (sender && sender.id && sender.id !== chrome.runtime.id) {
+        respond({
+          error: {
+            reason: 'forbiddenSender'
+          }
+        });
+        return;
+      }
+      allowedMethods = new Set([
+        'resetAllOptions',
+        'getState',
+        'setState',
+        'applyProfile',
+        'getPageInfo',
+        'addCondition',
+        'getTempRules',
+        'addTempRule',
+        'setDefaultProfile',
+        'getAll',
+        'renameProfile',
+        'replaceRef',
+        'patch',
+        'reset',
+        'updateProfile',
+        'addProfile'
+      ]);
+      if (!allowedMethods.has(request.method) ||
+          !/^[A-Za-z0-9_]+$/.test(request.method)) {
+        respond({
+          error: {
+            reason: 'noSuchMethod'
+          }
+        });
+        return;
+      }
+      reply = !request.noReply;
       options.ready.then(function() {
-        var method, promise, target;
         if (request.method === 'resetAllOptions') {
           target = globalThis;
           method = resetAllOptions;
@@ -556,25 +608,19 @@
           method = target[request.method];
         }
         if (typeof method !== 'function') {
-          Log.error("No such method " + request.method + "!");
-          respond({
-            error: {
-              reason: 'noSuchMethod'
-            }
-          });
-          return;
+          throw new Error("No such method " + request.method + "!");
         }
-        promise = Promise.resolve().then(function() {
-          return method.apply(target, request.args);
-        });
-        if (request.refreshActivePage) {
-          promise.then(refreshActivePageIfEnabled);
-        }
-        if (request.noReply) {
-          return;
-        }
-        promise.then(function(result) {
+        args = Array.isArray(request.args) ? request.args : [];
+        return Promise.resolve().then(function() {
+          return method.apply(target, args);
+        }).then(function(result) {
           var key, value;
+          if (request.refreshActivePage) {
+            refreshActivePageIfEnabled();
+          }
+          if (!reply) {
+            return;
+          }
           if (request.method === 'updateProfile') {
             for (key in result) {
               if (!__hasProp.call(result, key)) continue;
@@ -582,18 +628,19 @@
               result[key] = encodeError(value);
             }
           }
-          return respond({
+          respond({
             result: result
           });
         });
-        return promise["catch"](function(error) {
-          Log.error(request.method + ' ==>', error);
-          return respond({
+      })["catch"](function(error) {
+        Log.error(request.method + ' ==>', error);
+        if (reply) {
+          respond({
             error: encodeError(error)
           });
-        });
+        }
       });
-      if (!request.noReply) {
+      if (reply) {
         return true;
       }
     });

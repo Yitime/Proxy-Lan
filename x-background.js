@@ -31,7 +31,9 @@ if (globalThis.navigator && /Android/i.test(globalThis.navigator.userAgent)){
 }
 
 // keepAlive
-setInterval(chrome.runtime.getPlatformInfo, 25 * 1000) //https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers
+setInterval(function() {
+  chrome.runtime.getPlatformInfo(function() {})
+}, 25 * 1000) //https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers
 
 function detectPrivateMode(cb) {
   var db, tempMode,on, off;

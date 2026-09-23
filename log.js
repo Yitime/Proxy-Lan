@@ -11,29 +11,30 @@ const ZeroLogFactory = ()=>{
   const _logFn = async function(){
     if (isRunning) return
     isRunning = true
-    const _moment = moment()
-
-    const dayOfWeek = _moment.format('E') // Day of Week (ISO),  keep logs max 7 day
-    const monthNum = _moment.format('DD')
-    const logKey = 'zerolog-' + dayOfWeek
-    while (logSequence.length > 0) {
-      const str = logSequence.join('\n');
-      logSequence.length = 0;
-      let logInfo = await idbKeyval.get(logKey, logStore)
-      let date = _moment.format('YYYY-MM-DD')
-      if (!logInfo || !logInfo.date) {
-        logInfo = { date: date, val: ''}
+    try {
+      const _moment = moment()
+      const dayOfWeek = _moment.format('E') // Day of Week (ISO), keep logs max 7 days
+      const logKey = 'zerolog-' + dayOfWeek
+      while (logSequence.length > 0) {
+        const str = logSequence.join('\n');
+        logSequence.length = 0;
+        let logInfo = await idbKeyval.get(logKey, logStore)
+        let date = _moment.format('YYYY-MM-DD')
+        if (!logInfo || !logInfo.date) {
+          logInfo = { date: date, val: ''}
+        }
+        let { val } = logInfo
+        if (logInfo.date != date) {
+          val = ''
+        }
+        val += splitStr
+        splitStr = `\n`
+        val += str
+        await idbKeyval.set(logKey, { date, val }, logStore)
       }
-      let { val } = logInfo
-      if ( logInfo.date != date) {
-        val = ''
-      }
-      val += splitStr
-      splitStr = `\n`
-      val += str
-      await idbKeyval.set(logKey, { date, val }, logStore)
+    } finally {
+      isRunning = false
     }
-    isRunning = false
   }
 
 
@@ -84,12 +85,15 @@ const ZeroLogFactory = ()=>{
   const _lastErrorLogFn = async ()=>{
     if (_lastErrorLogFn.isRunning) return
     _lastErrorLogFn.isRunning = true
-    while (_lastErrorLogFn.val) {
-      const val = _lastErrorLogFn.val
-      _lastErrorLogFn.val = ''
-      await idbKeyval.set('lastError', val, logStore)
+    try {
+      while (_lastErrorLogFn.val) {
+        const val = _lastErrorLogFn.val
+        _lastErrorLogFn.val = ''
+        await idbKeyval.set('lastError', val, logStore)
+      }
+    } finally {
+      _lastErrorLogFn.isRunning = false
     }
-    _lastErrorLogFn.isRunning = false
   }
 
   const lastErrorLogFn = async function (){
