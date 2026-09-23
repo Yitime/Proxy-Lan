@@ -38,17 +38,32 @@ export const safeDecodeUri = (value) => {
 export const safeCssColor = (value) => {
   const color = String(value ?? '').trim();
   return globalThis.CSS?.supports?.('color', color) ? color : '';
-}
+};
 
-export const copyToClipoard = (data, opts)=>{
-  return new Promise((resolve)=>{
-    document.addEventListener('copy', (e)=>{
+export const copyToClipoard = async (data, opts = {})=>{
+  const type = opts.type || 'text/plain'
+  const value = String(data ?? '')
+  if (type === 'text/plain' && navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value)
+      return
+    } catch (_) {}
+  }
+
+  return new Promise((resolve, reject)=>{
+    const onCopy = (e)=>{
       e.preventDefault()
       e.stopPropagation()
-      e.clipboardData.setData(opts?.type || 'text/plain', data)
+      e.clipboardData.setData(type, value)
+    }
+    document.addEventListener('copy', onCopy, {once: true})
+    const copied = document.execCommand('copy')
+    if (!copied) {
+      document.removeEventListener('copy', onCopy)
+      reject(new Error('Clipboard copy failed'))
+    } else {
       resolve()
-    }, {once: true})
-    document.execCommand('copy')
+    }
   })
 }
 

@@ -24,8 +24,11 @@
     }
     activeTabId = parseInt(activeTabId);
     if (activeTabId) {
-      return chrome.tabs.get(activeTabId).then(cb)["catch"](function() {
-        return cb();
+      return chrome.tabs.get(activeTabId, function(tab) {
+        if (chrome.runtime.lastError) {
+          return cb();
+        }
+        return cb(tab);
       });
     } else {
       return queryTab(cb);
@@ -66,6 +69,9 @@
         if (chrome.runtime.lastError != null) {
           d.reject(chrome.runtime.lastError);
           return;
+        }
+        if (!response) {
+          return d.reject(new Error('Background response is empty'));
         }
         if (response.error) {
           return d.reject(decodeError(response.error));

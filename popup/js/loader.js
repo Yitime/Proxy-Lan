@@ -4,8 +4,8 @@ $script(['js/i18n.js']);
 $script('../js/omega_target_popup.js', 'om-target', function() {
   $script('js/style.js', 'om-style')
   function init(){
-    chrome.tabs.query({active: true, lastFocusedWindow: true}).then(function(tabs){
-      if (tabs.length > 0 && (tabs[0].pendingUrl || tabs[0].url)){
+    chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs){
+      if (tabs && tabs.length > 0 && (tabs[0].pendingUrl || tabs[0].url)){
         const activeTab = tabs[0]
         window.OmegaPopup.activeTab = activeTab;
         const reqinfoEl = document.getElementById('js-reqinfo');
@@ -13,7 +13,7 @@ $script('../js/omega_target_popup.js', 'om-target', function() {
         reqinfoEl.setAttribute('href', '../popup.html?activeTabId=' + activeTab.id + '#!requestInfo')
         addruleEl.setAttribute('href', '../popup.html?activeTabId=' + activeTab.id + '#!addRule')
       }
-    }).catch(function(){})
+    })
     OmegaTargetPopup.getActivePageInfo(function(err, info) {
       window.OmegaPopup.pageInfo = info;
       $script.done('om-page-info');

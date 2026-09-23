@@ -40,23 +40,22 @@ OmegaTargetPopup = {
   },
   openOptions: function (hash, cb) {
     var options_url = chrome.runtime.getURL('options.html');
-    console.log('open options.....')
+    var url = options_url + (hash || '');
 
     chrome.tabs.query({
-      url: options_url
+      url: options_url + '*'
     }, function(tabs) {
       if (!chrome.runtime.lastError && tabs && tabs.length > 0) {
         var props = {
           active: true
         };
         if (hash) {
-          var url = options_url + hash;
           props.url = url;
         }
         chrome.tabs.update(tabs[0].id, props);
       } else {
         chrome.tabs.create({
-          url: options_url
+          url: url
         });
       }
       if (cb) return cb();

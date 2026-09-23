@@ -72,12 +72,12 @@
             userAgent: navigator.userAgent
           };
           body = chrome.i18n.getMessage('popup_issueTemplate', [env.projectVersion, env.userAgent]);
-          body || (body = "\n\n\n<!-- Please write your comment ABOVE this line. -->\nZeroOmega " + env.projectVersion + "\n" + env.userAgent);
+          body || (body = "\n\n\n<!-- Please write your comment ABOVE this line. -->\nProxy-Lan " + env.projectVersion + "\n" + env.userAgent);
           finalUrl = url + encodeURIComponent(body);
-          err = lastError || '';
+          err = String(lastError || '').slice(0, 4000);
           if (err) {
             body += "\n```\n" + err + "\n```";
-            finalUrl = (url + encodeURIComponent(body)).substr(0, 2000);
+            finalUrl = url + encodeURIComponent(body);
           }
         } catch (_error) {}
         return chrome.tabs.create({

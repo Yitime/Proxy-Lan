@@ -48,6 +48,20 @@ const getHeaderValue = (headers, name)=>{
 
 const MAXRECORDS = 1000
 
+const getCurrentTab = () => new Promise((resolve) => {
+  chrome.tabs.getCurrent((tab) => resolve(tab || null))
+})
+
+const updateCurrentTab = (tabId, updateProperties) => new Promise((resolve, reject) => {
+  chrome.tabs.update(tabId, updateProperties, (tab) => {
+    if (chrome.runtime.lastError) {
+      reject(new Error(chrome.runtime.lastError.message))
+    } else {
+      resolve(tab)
+    }
+  })
+})
+
 let recentlyRequestId = 0
 let sequenceDataCache = {}
 let autoScrollToBottom = true
@@ -322,7 +336,12 @@ const createTabulator = () => {
             if (e.target.classList.contains('copy-btn')) {
               copyToClipoard(cell.getValue()).then(()=>{
                 Toastify({
-                  text: "Copy success",
+                  text: tr('networkMonitor_copySuccess'),
+                  position: "center",
+                }).showToast();
+              }).catch(()=>{
+                Toastify({
+                  text: tr('networkMonitor_copyError'),
                   position: "center",
                 }).showToast();
               })
@@ -554,8 +573,10 @@ function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
 }
 
 const init = async () => {
-  const currentTab = await chrome.tabs.getCurrent();
-  await chrome.tabs.update(currentTab.id, {autoDiscardable: false});
+  const currentTab = await getCurrentTab();
+  if (currentTab?.id) {
+    await updateCurrentTab(currentTab.id, {autoDiscardable: false});
+  }
   const tabulatorInstance = await createTabulator();
   const tabsSelectorContainerEl = document.querySelector('.tabs-selector-container')
   let port;
