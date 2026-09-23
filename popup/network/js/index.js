@@ -42,13 +42,14 @@ const sortRequest = (a,b)=>{
 }
 
 const getHeaderValue = (headers, name)=>{
-  const result = headers.find((header)=> header.name == name)
+  const result = (headers || []).find((header)=> header.name?.toLowerCase() === name.toLowerCase())
   return result?.value;
 }
 
 const MAXRECORDS = 1000
 
 let recentlyRequestId = 0
+let sequenceDataCache = {}
 let autoScrollToBottom = true
 
 const scrollTabulatorToBottom = (tabulatorInstance)=>{
@@ -133,7 +134,9 @@ const createTabulator = () => {
     `
     clearBtnEl.onclick = async ()=> {
       tabulatorInstance.clearData();
-      waitTimeout(600);
+      sequenceDataCache = {};
+      recentlyRequestId = 0;
+      await waitTimeout(600);
       autoScrollToBottom = true;
       document.body.classList.remove('disable-auto-scroll')
     }
@@ -331,7 +334,7 @@ const createTabulator = () => {
       },
       {
         title: "Time",
-        field: "recentlyTimestamp",
+        field: "recentlyStatus",
         headerSort: false,
         width: 100,
         formatter: (cell) => {
@@ -386,18 +389,15 @@ const createTabulator = () => {
       { title: "Tab", field: "tabId", width: 50, visible: false },
     ],
   });
-  window.tt = tabulatorInstance;
-  tabulatorInstance.on("rowAdded", function(row){
-    const rowCount = tabulatorInstance.getDataCount();
+  tabulatorInstance.on("rowAdded", function(){
     const rows = tabulatorInstance.getRows()
-    if (rowCount > MAXRECORDS) {
-      rows[0].delete()
+    if (rows.length > MAXRECORDS) {
+      const oldestRow = rows.reduce((oldest, row) => {
+        const oldestId = Number(oldest?.getIndex?.() ?? Infinity);
+        return Number(row.getIndex()) < oldestId ? row : oldest;
+      }, null);
+      oldestRow?.delete();
     }
-//    const rows = tabulatorInstance.getRows()
-//    const lastRow = rows[rows.length - 1];
-//    const rowIndex = lastRow.getIndex()
-//    tabulatorInstance.scrollToRow(rowIndex)
-      //row - row component
   });
 
 
@@ -415,66 +415,57 @@ const createTabulator = () => {
 
 
 function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
-  let sequenceDataCache = {}
   async function sequenceUpdateDatas(datas=[]){
     datas.forEach((data)=>{
       sequenceDataCache[data.requestId] = data;
     })
     if (sequenceUpdateDatas.isRunning) return
     sequenceUpdateDatas.isRunning = true
-    while(Object.keys(sequenceDataCache).length > 0){
-      if (document.visibilityState !== 'visible') {
-        break
+    try {
+      while(Object.keys(sequenceDataCache).length > 0){
+        let useReplace = false
+        if (Object.keys(sequenceDataCache).length > 20) {
+          useReplace = true
+          const tableDatas = tabulatorInstance.getData()
+          tableDatas.forEach((data)=> {
+            if (!sequenceDataCache[data.requestId]) {
+              sequenceDataCache[data.requestId] = data
+            }
+          })
+        }
+        let sequenceDatas = Object.values(sequenceDataCache)
+        sequenceDatas.sort(sortRequest)
+        if (sequenceDatas.length > MAXRECORDS) {
+          sequenceDatas = sequenceDatas.slice(-MAXRECORDS);
+        }
+        sequenceDataCache = {}
+        if (sequenceDatas.length == 0) {
+          continue
+        }
+        const lastRequestId = parseInt(sequenceDatas[sequenceDatas.length - 1].requestId)
+        if (useReplace) {
+          const selectedDatas = tabulatorInstance.getSelectedData?.() || []
+          await tabulatorInstance.replaceData(sequenceDatas)
+          tabulatorInstance.selectRow(selectedDatas.map((data)=> data.requestId));
+        } else {
+          await tabulatorInstance.updateOrAddData(sequenceDatas)
+        }
+        if (lastRequestId > recentlyRequestId) {
+          recentlyRequestId = lastRequestId;
+        }
       }
-      if (!autoScrollToBottom) {
-        break
+      if (autoScrollToBottom) {
+        scrollTabulatorToBottom(tabulatorInstance);
       }
-      let useReplace = false
-      console.log('update datassssss:::', Object.keys(sequenceDataCache).length, sequenceDataCache)
-      if (Object.keys(sequenceDataCache).length > 20) {
-        useReplace = true
-        const tableDatas = tabulatorInstance.getData()
-        tableDatas.forEach((data)=> {
-          if (!sequenceDataCache[data.requestId]) {
-            sequenceDataCache[data.requestId] = data
-          }
-        })
-      }
-      let sequenceDatas = Object.values(sequenceDataCache)
-      const filterTabId = tabsSelectorInstance.getSelectedTabId()
-      if (filterTabId) {
-        sequenceDatas = sequenceDatas.filter((data)=> filterTabId == data.tabId)
-      }
-      sequenceDatas.sort(sortRequest)
-      if (sequenceDatas.length > MAXRECORDS) {
-        sequenceDatas = sequenceDatas.slice(-MAXRECORDS);
-      }
-      sequenceDataCache = {}
-      if (sequenceDatas.length == 0) {
-        continue
-      }
-      const lastRequestId = parseInt(sequenceDatas[sequenceDatas.length - 1].requestId)
-      if (useReplace) {
-        const selectedDatas = tabulatorInstance.getSelectedData()
-        await tabulatorInstance.replaceData(sequenceDatas)
-        tabulatorInstance.selectRow(selectedDatas.map((data)=> data.requestId));
-      } else {
-        await tabulatorInstance.updateOrAddData(sequenceDatas)
-      }
-      //await waitTimeout(100);
-      if (lastRequestId > recentlyRequestId) {
-        recentlyRequestId = lastRequestId;
-      }
+    } catch (error) {
+      console.error('Unable to update network request data', error);
+    } finally {
+      sequenceUpdateDatas.isRunning = false
     }
-    if (autoScrollToBottom) {
-      scrollTabulatorToBottom(tabulatorInstance);
-    }
-    sequenceUpdateDatas.isRunning = false
   }
 
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
-      console.log('visible::::', Object.keys(sequenceDataCache).lenth, sequenceDataCache)
       sequenceUpdateDatas()
     }
   });
@@ -521,7 +512,6 @@ function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
             const requestStatus = tabRequestInfo.requestStatus;
             Object.values(tabRequestInfo.requests).forEach((request) => {
               request.recentlyStatus = requestStatus[request.requestId];
-              request.recentlyTimestamp = request.recentlyStatus
               request.profileName = ''
               decorateRequest(request)
               // only display have start request
@@ -533,6 +523,8 @@ function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
         });
         tabulatorInstance.clearAlert();
         tabulatorInstance.clearData();
+        sequenceDataCache = {};
+        recentlyRequestId = 0;
         sequenceUpdateDatas(requests.slice(-MAXRECORDS))
         break;
       }
@@ -543,7 +535,6 @@ function createConnectPort(tabulatorInstance, tabsSelectorInstance) {
           const request = info.requests[req.requestId]
           const requestStatus = info.requestStatus;
           request.recentlyStatus = requestStatus[request.requestId];
-          request.recentlyTimestamp = request.recentlyStatus
           decorateRequest(request)
           sequenceUpdateDatas([request])
         }
@@ -567,25 +558,25 @@ const init = async () => {
   await chrome.tabs.update(currentTab.id, {autoDiscardable: false});
   const tabulatorInstance = await createTabulator();
   const tabsSelectorContainerEl = document.querySelector('.tabs-selector-container')
+  let port;
   const tabsSelectorInstance = await initTabsSelector(tabsSelectorContainerEl, {
     setTab: (tab)=>{
       if (tab && tab.id) {
         const filterTabId = tab.id;
-        //tabulatorInstance.setFilter([{field: 'tabId', type: '=', value: filterTabId}])
-        port.postMessage({
+        tabulatorInstance.setFilter([{field: 'tabId', type: '=', value: filterTabId}])
+        port?.postMessage({
           type: 'init',
           tabId: filterTabId
         })
       } else {
-        //tabulatorInstance.clearFilter()
-        port.postMessage({
+        tabulatorInstance.clearFilter()
+        port?.postMessage({
           type: 'init',
         })
       }
-      console.log('tab changed:::', tab)
     }
   })
-  const port = createConnectPort(tabulatorInstance, tabsSelectorInstance);
+  port = createConnectPort(tabulatorInstance, tabsSelectorInstance);
 };
 
 init();
