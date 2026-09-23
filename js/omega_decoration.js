@@ -141,7 +141,7 @@
         scope.$watch(scope.profiles, (function(profiles) {
           scope.currentProfiles = profiles || [];
           if (scope.dispProfiles != null) {
-            scope.dispProfiles = currentProfiles;
+            scope.dispProfiles = scope.currentProfiles;
           }
           return updateView();
         }), true);

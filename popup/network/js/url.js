@@ -104,6 +104,14 @@ function createProfileDropdown(state, containerEl) {
   profileSelectorEl.appendChild(ul)
 }
 
+const isIpAddress = (hostname) => {
+  const value = String(hostname || '').replace(/^\[|\]$/g, '');
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(value)) {
+    return value.split('.').every((part) => Number(part) <= 255);
+  }
+  return value.includes(':') && /^[0-9a-f:]+$/i.test(value);
+};
+
 const generateConditionSuggestion = function (
   currentDomain,
   subdomain = "",
@@ -111,7 +119,7 @@ const generateConditionSuggestion = function (
 ) {
   let conditionSuggestion = null;
   let currentDomainEscaped = currentDomain.replace(/\./g, "\\.");
-  let domainLooksLikeIp = false;
+  let domainLooksLikeIp = isIpAddress(currentDomain);
   if (currentDomain.indexOf(":") >= 0) {
     domainLooksLikeIp = true;
     if (currentDomain[0] !== "[") {
@@ -121,8 +129,6 @@ const generateConditionSuggestion = function (
         .replace(/\[/g, "\\[")
         .replace(/\]/g, "\\]");
     }
-  } else if (currentDomain[currentDomain.length - 1] >= 0) {
-    domainLooksLikeIp = true;
   }
   if (domainLooksLikeIp) {
     conditionSuggestion = {
@@ -295,9 +301,8 @@ export const initUrlCellDetail = async (cell) => {
   urlContainerEl.querySelector(".add-temp-condition-btn").onclick = () => {
     const mainBtnEl = urlContainerEl.querySelector('.omega-profile-select .dropdown-toggle');
     const profileName = mainBtnEl.dataset.profile;
-    const pattern = detailEl.value;
     tabulatorInstance.clearAlert();
-    OmegaTargetPopup.addTempRule(pattern.substring(2), profileName, 1, ()=>{
+    OmegaTargetPopup.addTempRule(domain, profileName, 1, ()=>{
       OmegaTargetPopup.setState('lastProfileNameForCondition', profileName, ()=>{
         Toastify({
           text: "添加临时条件成功",
@@ -314,7 +319,7 @@ export const initUrlCellDetail = async (cell) => {
     const pattern = detailEl.value;
     tabulatorInstance.clearAlert();
     OmegaTargetPopup.addCondition([{
-      conditionType: 'HostWildcardCondition',
+      conditionType: typeEl.value || 'HostWildcardCondition',
       pattern
     }], profileName, ()=>{
       OmegaTargetPopup.setState('lastProfileNameForCondition', profileName, ()=>{
