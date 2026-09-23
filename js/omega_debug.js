@@ -47,14 +47,32 @@
       });
     },
     resetOptions: function() {
-      return chrome.runtime.sendMessage({
-        method: 'resetAllOptions'
-      }, function(response) {
-        localStorage.clear();
-        return Promise.all([idbKeyval.clear(logStore), idbKeyval.clear(syncStore), waitTimeFn(2000)]).then(function() {
-          return idbKeyval.clear();
-        }).then(function() {
-          return chrome.runtime.reload();
+      return new Promise(function(resolve, reject) {
+        chrome.runtime.sendMessage({
+          method: 'resetAllOptions'
+        }, function(response) {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+            return;
+          }
+          if (!response) {
+            reject(new Error('Background response is empty'));
+            return;
+          }
+          if (response.error) {
+            reject(new Error(response.error.message || response.error.reason || 'Unable to reset options'));
+            return;
+          }
+          localStorage.clear();
+          Promise.all([idbKeyval.clear(logStore), idbKeyval.clear(syncStore), waitTimeFn(2000)])
+            .then(function() {
+              return idbKeyval.clear();
+            })
+            .then(function() {
+              chrome.runtime.reload();
+              resolve(response);
+            })
+            .catch(reject);
         });
       });
     },

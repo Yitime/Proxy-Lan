@@ -564,8 +564,16 @@
         templateUrl: 'partials/reset_options_confirm.html'
       }).result.then(function() {
         $scope.optionsReseting = true;
-        return omegaDebug.resetOptions().then(function() {
+        return Promise.resolve(omegaDebug.resetOptions()).then(function() {
           return $scope.optionsReseting = false;
+        }, function(error) {
+          console.error('Unable to reset options', error);
+          $scope.optionsReseting = false;
+          return $rootScope.showAlert({
+            type: 'error',
+            i18n: 'options_resetOptions',
+            message: error && error.message ? error.message : 'Unable to reset options'
+          });
         });
       });
     };
