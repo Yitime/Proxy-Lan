@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <title></title>
+  <title>小蓝代理工具</title>
   <script src="./lib/zero-dependencies/iframeResizer/iframeResizer.min.js"></script>
   <link rel="stylesheet" href="css/theme.css">
   <style>
@@ -11,12 +11,14 @@
       padding:0;
     }
     iframe {
-      min-width: 300px;
+      width: 160px;
+      min-width: 160px;
+      display: block;
     }
   </style>
 </head>
 <body>
-  <iframe id="myIframe" src="./popup/index.html" frameborder="0"></iframe>
+  <iframe id="myIframe" src="./popup/index.html" frameborder="0" title="小蓝代理工具"></iframe>
   <script src="./lib/script.js/script.min.js"></script>
   <script src="./popup-iframe.js"></script>
 </body>

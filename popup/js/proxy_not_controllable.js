@@ -15,7 +15,7 @@
 
   var learnMoreButton = document.getElementById('js-nc-learn-more');
   learnMoreButton.addEventListener('click', function () {
-    OmegaTargetPopup.openOptions('#!/general', closePopup);
+    OmegaTargetPopup.openOptions('#!/ui', closePopup);
   }, false);
 
   closeButton.textContent = OmegaTargetPopup.getMessage('dialog_cancel');
@@ -28,6 +28,12 @@
   OmegaTargetPopup.getState([
     'proxyNotControllable',
   ], function(err, state) {
+    if (err || !state) {
+      document.getElementById('js-nc-text').textContent = OmegaTargetPopup.getMessage('options_loadErrorTitle');
+      document.getElementById('js-nc-details').textContent = OmegaTargetPopup.getMessage('options_loadError');
+      console.error('Unable to load proxy control state', err);
+      return;
+    }
     var reason = state.proxyNotControllable;
     var messageElement = document.getElementById('js-nc-text');
     var detailsElement = document.getElementById('js-nc-details');

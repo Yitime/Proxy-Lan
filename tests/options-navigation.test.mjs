@@ -16,6 +16,18 @@ function openOptions(target, hash) {
   return new Promise((resolve) => target.openOptions(hash, resolve))
 }
 
+test('popup switching waits for background acknowledgement and surfaces configuration errors', () => {
+  let request, response
+  const target = loadPopup({ runtime: { sendMessage(value, callback) { request = value; response = callback } }, i18n: { getMessage: () => '' } })
+  let outcome = 'pending'
+  target.applyProfile('自动', error => { outcome = error })
+  assert.equal(outcome, 'pending')
+  assert.equal(request.noReply, undefined)
+  assert.equal(request.refreshActivePage, true)
+  response({ error: { name: 'ProxyConfigurationError', profileName: '翻墙', message: '请先配置代理' } })
+  assert.equal(outcome.profileName, '翻墙')
+})
+
 test('openOptions uses the native options-page API first', async () => {
   let opened = 0
   const target = loadPopup({
@@ -53,10 +65,10 @@ test('openOptions updates an existing options tab for hash routes', async () => 
     i18n: { getMessage: () => '' }
   })
 
-  await openOptions(target, '#!/general')
+  await openOptions(target, '#!/ui')
   assert.equal(updated.tabId, 7)
   assert.equal(updated.properties.active, true)
-  assert.equal(updated.properties.url, optionsUrl + '#!/general')
+  assert.equal(updated.properties.url, optionsUrl + '#!/ui')
 })
 
 test('openOptions creates a tab when lookup fails', async () => {

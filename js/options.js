@@ -40,16 +40,15 @@
   });
 
   $script.ready(['angular-loader'], function() {
-    angular.module('omega', ['ngLocale', 'ngAnimate', 'ngSanitize', 'ui.bootstrap', 'ui.router', 'ngProgress', 'ui.sortable', 'angularSpectrumColorpicker', 'ui.validate', 'angular-ladda', 'omegaTarget', 'omegaDecoration']);
+    angular.module('omega', ['ngLocale', 'ngAnimate', 'ngSanitize', 'ui.bootstrap', 'ui.router', 'ngProgress', 'ui.sortable', 'ui.validate', 'angular-ladda', 'omegaTarget', 'omegaDecoration']);
     $script.ready(['omega-pac'], function() {
       return $script('js/omega.js', 'omega');
     });
-    return $script(['js/omega_target_web.js', 'js/omega_decoration.js', 'lib/angular-animate/angular-animate.min.js', 'lib/angular-bootstrap/ui-bootstrap-tpls.min.js', 'lib/ngprogress/ngProgress.min.js', 'lib/angular-ui-sortable/sortable.min.js', 'lib/angular-ui-utils/validate.min.js', 'lib/jsondiffpatch/jsondiffpatch.min.js', 'lib/angular-spectrum-colorpicker/angular-spectrum-colorpicker.min.js'], 'omega-deps');
+    return $script(['js/omega_target_web.js', 'js/omega_decoration.js', 'lib/angular-animate/angular-animate.min.js', 'lib/angular-bootstrap/ui-bootstrap-tpls.min.js', 'lib/ngprogress/ngProgress.min.js', 'lib/angular-ui-sortable/sortable.min.js', 'lib/angular-ui-utils/validate.min.js', 'lib/jsondiffpatch/jsondiffpatch.min.js'], 'omega-deps');
   });
 
   $script.ready(['jquery'], function() {
     $script('lib/zero-dependencies/jquery-ui/jquery-ui-1.10.4.custom.min.js', 'jquery-ui-base');
-    return $script('lib/spectrum/spectrum.js', 'spectrum');
   });
 
   $script.ready(['jquery-ui-base'], function() {
@@ -80,7 +79,7 @@
     return $script('lib/angular-i18n/angular-locale_' + locale + '.js', 'angular-i18n');
   });
 
-  $script.ready(['angular', 'omega', 'omega-deps', 'angular-ui-router', 'jquery-ui', 'spectrum', 'filesaver', 'blob', 'angular-ladda', 'angular-sanitize', 'angular-i18n'], function() {
+  $script.ready(['angular', 'omega', 'omega-deps', 'angular-ui-router', 'jquery-ui', 'filesaver', 'blob', 'angular-ladda', 'angular-sanitize', 'angular-i18n'], function() {
     return angular.bootstrap(document, ['omega']);
   });
 

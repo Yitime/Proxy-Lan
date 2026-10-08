@@ -1,17 +1,24 @@
 
 <div class="page-header">
-  <h2 ng-show="isSystem()">{{'profile_system' | tr}}</h2>
-  <h2 ng-show="!isSystem()">{{'profile_direct' | tr}}</h2>
+  <h2>{{dispNameFilter(builtinProfile)}}</h2>
+  <p ng-show="isSystem()">沿用系统或其他程序管理的代理设置。</p>
+  <p ng-show="!isSystem()">不经过代理，直接访问网站。</p>
 </div>
-<section ng-show="isSystem()" class="settings-group"><span class="profile-color-editor">
-    <div class="profile-color-editor-fake">
-      <x-spectrum-colorpicker ng-model="systemProfile.color" options="spectrumOptions" on-change="changeColor(color)" on-move="moveColor(color, &quot;+system&quot;)"></x-spectrum-colorpicker>
-    </div></span>
-  <h2 class="profile-name">{{'options_profileTabPrefix' | tr}}{{'profile_system' | tr}}</h2>
-</section>
-<section ng-show="!isSystem()" class="settings-group"><span class="profile-color-editor">
-    <div class="profile-color-editor-fake">
-      <x-spectrum-colorpicker ng-model="directProfile.color" options="spectrumOptions" on-move="moveColor(color, &quot;+direct&quot;)"></x-spectrum-colorpicker>
-    </div></span>
-  <h2 class="profile-name">{{'options_profileTabPrefix' | tr}}{{'profile_direct' | tr}}</h2>
+<section class="settings-group builtin-settings">
+  <h3>模式设置</h3>
+  <form name="builtinSettingsForm" novalidate>
+    <div class="form-group">
+      <label for="builtin-display-name">显示名称</label>
+      <div class="builtin-name-field">
+        <input id="builtin-display-name" name="displayName" type="text" required maxlength="32"
+               ng-model="builtinProfile.displayName" ng-change="updateBuiltinName()" class="form-control">
+        <button type="button" ng-click="resetBuiltinName()" class="btn btn-default">恢复默认</button>
+      </div>
+      <p class="help-block">名称会同步显示在侧栏、弹窗和规则列表中。</p>
+    </div>
+    <div class="builtin-color-field">
+      <div><label>模式颜色</label><p class="help-block">用于区分不同模式。</p></div>
+      <omega-color-picker ng-model="builtinProfile.color" ng-change="updateBuiltinColor()"></omega-color-picker>
+    </div>
+  </form>
 </section>

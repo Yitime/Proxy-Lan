@@ -1,5 +1,6 @@
 <div class="page-header">
   <h2>{{'options_tab_importExport' | tr}}</h2>
+  <p>保存一份配置备份，或从本地文件恢复已有设置。</p>
 </div>
 
 <div class="io-grid">
@@ -10,7 +11,7 @@
     <div class="io-card-body">
       <h3>{{'options_ioExportTitle' | tr}}</h3>
       <p class="help-block">{{'options_makeBackupHelp' | tr}}</p>
-      <button ng-click="exportOptions()" class="btn btn-primary">
+      <button ng-click="runAction(exportOptions())" class="btn btn-primary">
         <span class="glyphicon glyphicon-download-alt"></span>
         {{'options_makeBackup' | tr}}
       </button>

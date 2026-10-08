@@ -7,203 +7,36 @@
  */
 
 
-/* Layout */
 
-html, body {
-  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size: 14px;
-  padding: 0;
-  margin: 0;
-}
-
-body {
-  min-width: 12em;
-  padding: 5px 0;
-}
-
-.om-hidden {
-  display: none !important;
-}
-
-#js-system{
-  color: #000;
-}
-
-.om-current-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 2px 5px 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background: var(--surface-color);
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary-color) 10%, var(--surface-color)), var(--surface-color));
-  box-shadow: 0 6px 18px var(--shadow-color);
-}
-
-.om-current-label {
-  color: var(--text-muted);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
-
-.om-current-name {
-  max-width: 12em;
-  overflow: hidden;
-  color: var(--text-color);
-  font-size: 14px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Menu */
-
-.om-nav {
-  list-style: none;
-  padding: 0;
-  margin: 5px;
-}
-
-  .om-nav-item {
-    display: block;
-    margin: 2px 0;
-  }
-
-    .om-nav-item > a > .glyphicon {
-      margin-right: 8px;
-    }
-
-    .om-nav-item > a {
-      display: block;
-      padding: 5px 25px 5px 8px;
-      border-radius: 4px;
-      line-height: 1.5em;
-      font-size: 1em;
-      color: #337ab7;
-      text-decoration: none;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .om-nav-item > a:hover {
-      text-decoration: none;
-      background-color: #eee;
-    }
-    .om-nav-item > a:hover {
-      color: #23527c;
-    }
-    .om-nav-item.om-effective > a {
-      background-color: #d9edf7;
-    }
-    .om-nav-item.om-active > a {
-      color: #fff;
-      background-color: #337ab7;
-    }
-
-  .om-divider {
-    height: 1px;
-    overflow: hidden;
-    background-color: #E5E5E5;
-  }
-
-  .om-reqinfo {
-    background-color: #fcf8e3;
-  }
-
-  .glyphicon-warning-sign {
-    color: #8a6d3b;
-  }
-
-/* Dropdown */
-
-.om-dropdown {
-  display: none;
-  list-style: none;
-  padding: 5px 0;
-  margin: 0 5px !important;
-  border: 1px solid rgba(0,0,0,.15);
-  border-radius: 4px;
-  box-shadow: 0 6px 12px rgba(0,0,0,.175);
-}
-
-.om-open .om-dropdown {
-  display: block;
-}
-
-.om-dropdown .om-nav-item {
-  margin: 0;
-}
-
-.om-dropdown .om-nav-item > a {
-  padding: 3px 20px;
-  line-height: 1.3em;
-  margin: 0;
-}
-
-.om-caret {
-  display: inline-block;
-  width: 0;
-  height: 0;
-  margin-left: 2px;
-  vertical-align: middle;
-  border-top: 4px solid;
-  border-right: 4px solid transparent;
-  border-left: 4px solid transparent;
-}
-
-.om-virtual-profile-icon {
-  border: dotted 1px;
-  margin: -1px;
-}
-
-/* Default Edit */
-
-.om-has-edit {
-  padding-right: 32px;
-  position: relative;
-}
-
-  .om-edit-toggle {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    color: #337ab7;
-    display: inline-block;
-    margin: -5px 0;
-    text-align: center;
-    padding: 5px 8px 3px;
-    position: absolute;
-    right: 0;
-  }
-
-  .om-edit-toggle:hover {
-    background-color: #e6e6e6;
-    border-color: #adadad;
-  }
-
-/* Keyboard */
-
-.om-keyboard-help {
-  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
-  border: solid 1px #000;
-  border-radius: 2px;
-  display: inline-block;
-  color: #000;
-  box-shadow: 1px 1px;
-  width: 1em;
-  height: 1em;
-  line-height: 1em;
-  text-align: center;
-  margin-top: -3px;
-}
-
+html, body { padding: 0; margin: 0; }
+body { width: 160px; min-width: 160px; padding: 6px 0; }
+.om-hidden { display: none !important; }
+.om-nav { list-style: none; padding: 0 6px; margin: 0; }
+.om-state-error { margin: 5px 9px; font-size: 11px; color: var(--danger-color); }
+.om-apply-error { padding: 6px 10px; font-size: 11px; color: var(--danger-color); }
+.om-apply-error p { margin: 0 0 4px; overflow-wrap: anywhere; }
+.om-apply-error a { color: var(--primary-color); }
+.om-nav-item { margin: 2px 0; }
+.om-nav-item > a { display: flex; align-items: center; gap: 8px; position: relative; padding: 5px 9px; border: 1px solid transparent; border-radius: 7px; line-height: 1.5; font-size: 12px; font-weight: 700; color: var(--text-color); text-decoration: none; cursor: pointer; }
+.om-nav-item > a:focus-visible { outline-width: 2px; outline-offset: 0; }
+.om-nav-item > a:hover { background: var(--surface-color); border-color: var(--border-color); }
+.om-nav-item > a > .glyphicon { width: 15px; flex-shrink: 0; font-size: 13px; }
+.om-nav-item > a > .mode-icon { width: 16px; height: 16px; }
+.om-profile-name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.om-nav-item.om-active > a { color: #fff; background: #315fd4; border-color: #315fd4; font-weight: 700; padding-right: 36px; }
+.om-nav-item.om-active > a:hover { color: #fff; background: #254caf; border-color: #254caf; }
+.om-nav-item.om-active > a > .mode-icon { color: #fff !important; }
+.om-nav-item.om-active > a > .mode-icon::before { background-color: #fff; }
+.om-nav-item.om-active > a::after { content: '✓'; position: absolute; right: 9px; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #fff; color: #315fd4; font-size: 13px; font-weight: 700; line-height: 1; }
+.om-nav-item.om-effective > a { border-color: var(--border-color); }
+.om-divider { height: 1px; background: var(--border-color); margin: 5px 6px; }
+.glyphicon-warning-sign { color: var(--warning-color); }
 /* Glyphicons */
 
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url(../../../lib/bootstrap/fonts/glyphicons-halflings-regular.eot);
-  src: url(../../../lib/bootstrap/fonts/glyphicons-halflings-regular.eot?#iefix) format('embedded-opentype'),url(../../../lib/bootstrap/fonts/glyphicons-halflings-regular.woff2) format('woff2'),url(../../../lib/bootstrap/fonts/glyphicons-halflings-regular.woff) format('woff'),url(../../../lib/bootstrap/fonts/glyphicons-halflings-regular.ttf) format('truetype'),url(../../../lib/bootstrap/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular) format('svg')
+  src: url(../../lib/bootstrap/fonts/glyphicons-halflings-regular.eot);
+  src: url(../../lib/bootstrap/fonts/glyphicons-halflings-regular.eot?#iefix) format('embedded-opentype'),url(../../lib/bootstrap/fonts/glyphicons-halflings-regular.woff2) format('woff2'),url(../../lib/bootstrap/fonts/glyphicons-halflings-regular.woff) format('woff'),url(../../lib/bootstrap/fonts/glyphicons-halflings-regular.ttf) format('truetype'),url(../../lib/bootstrap/fonts/glyphicons-halflings-regular.svg#glyphicons_halflingsregular) format('svg')
 }
 
 .glyphicon {

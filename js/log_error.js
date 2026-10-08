@@ -1,17 +1,8 @@
 (function() {
-  window.onerror = function(message, url, line, col, err) {
-    var log;
-    console.log('globalThis onerror', arguments);
-    if (!globalThis.localStorage) {
-      return;
-    }
-    log = localStorage['log'] || '';
-    if (err != null ? err.stack : void 0) {
-      log += err.stack + '\n\n';
-    } else {
-      log += "" + url + ":" + line + ":" + col + ":\t" + message + "\n\n";
-    }
-    localStorage['log'] = log;
+  try {
+    if (globalThis.localStorage) localStorage.removeItem('log');
+  } catch (_) {}
+  window.onerror = function(message, url, line, col, error) {
+    console.error(error && error.stack ? error.stack : url + ':' + line + ':' + col + ': ' + message);
   };
-
 }).call(this);

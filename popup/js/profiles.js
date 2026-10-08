@@ -5,44 +5,22 @@
   profileTemplate.removeAttribute('id');
 
   var iconForProfileType = {
-    'DirectProfile': 'glyphicon-transfer',
-    'SystemProfile': 'glyphicon-off',
-    'AutoDetectProfile': 'glyphicon-file',
-    'FixedProfile': 'glyphicon-globe',
-    'PacProfile': 'glyphicon-file',
-    'VirtualProfile': 'glyphicon-question-sign',
-    'RuleListProfile': 'glyphicon-list',
-    'SwitchProfile': 'glyphicon-retweet',
+    'DirectProfile': 'mode-icon mode-icon-direct',
+    'SystemProfile': 'mode-icon mode-icon-system',
+    'FixedProfile': 'mode-icon mode-icon-proxy',
+    'RuleListProfile': 'mode-icon mode-icon-list',
+    'SwitchProfile': 'mode-icon mode-icon-auto',
   };
   var orderForType = {
     'FixedProfile': -2000,
-    'PacProfile': -1000,
-    'VirtualProfile': 1000,
     'SwitchProfile': 2000,
     'RuleListProfile': 3000,
   };
 
   $script.ready('om-state', updateMenuByState);
-  $script.ready('om-page-info', updateMenuByPageInfo);
   $script.ready(['om-state', 'om-page-info'], updateMenuByStateAndPageInfo);
 
   return;
-
-  function updateCurrentProfileCard(state) {
-    var currentName = state.currentProfileName;
-    var profile = currentName ? state.availableProfiles['+' + currentName] : null;
-    var name = profile ? (OmegaTargetPopup.getMessage('profile_' + profile.name) || profile.name) :
-      (state.isSystemProfile ? OmegaTargetPopup.getMessage('profile_system') :
-        OmegaTargetPopup.getMessage('profile_direct'));
-    var labelEl = document.getElementById('js-current-label');
-    var nameEl = document.getElementById('js-current-name');
-    if (labelEl) {
-      labelEl.textContent = OmegaTargetPopup.getMessage('popup_currentProfile') || '当前配置';
-    }
-    if (nameEl) {
-      nameEl.textContent = name;
-    }
-  }
 
   function updateMenuByState() {
     var state = OmegaPopup.state;
@@ -50,10 +28,13 @@
       location.href = 'proxy_not_controllable.html';
       return;
     }
-    updateCurrentProfileCard(state);
     addProfilesItems(state);
     $script.done('om-profile-items');
     updateOtherItems(state);
+  }
+
+  function displayName(profile) {
+    return profile.displayName || OmegaTargetPopup.getMessage('profile_' + profile.name) || profile.name;
   }
 
   function compareProfile(a, b) {
@@ -71,27 +52,13 @@
     }
   }
 
-  function updateMenuByPageInfo() {
-    var info = OmegaPopup.pageInfo;
-    if (info && info.errorCount > 0) {
-      document.querySelector('.om-reqinfo').classList.remove('om-hidden');
-      var text = OmegaTargetPopup.getMessage('popup_requestErrorCount',
-        [info.errorCount]);
-      document.querySelector('.om-reqinfo-text').textContent = text;
-    }
-  }
-
   function updateMenuByStateAndPageInfo() {
     var state = OmegaPopup.state;
     var info = OmegaPopup.pageInfo;
-    if (state.showExternalProfile && state.externalProfile &&
-        (!info || !info.errorCount)) {
+    if (state.showExternalProfile && state.externalProfile) {
       showMenuForExternalProfile(state);
     }
     if (!info || !info.url) return updateOtherItems(null);
-    document.querySelector('.om-page-domain').textContent = info.domain;
-    OmegaPopup.showTempRuleDropdown = showTempRuleDropdown;
-    $script.done('om-dropdowns');
   }
 
   function showMenuForExternalProfile(state) {
@@ -109,14 +76,8 @@
       profileDisp.classList.add('om-effective');
     }
 
-    var reqInfo = document.querySelector('.om-reqinfo');
-    reqInfo.parentElement.insertBefore(profileDisp, reqInfo);
-  }
-
-  function showTempRuleDropdown() {
-    var tempRuleItem = document.querySelector('.om-nav-temprule');
-    toggleDropdown(tempRuleItem, createTempRuleDropdown);
-    document.getElementById('js-temprule').focus();
+    var profilesEnd = document.getElementById('js-profiles-end');
+    profilesEnd.parentElement.insertBefore(profileDisp, profilesEnd);
   }
 
   function updateOtherItems(state) {
@@ -126,10 +87,6 @@
       document.querySelector('.om-nav-addrule').classList.add('om-hidden');
       document.getElementById('js-addrule').href = '#';
     }
-    if (!hasValidResults) {
-      document.querySelector('.om-nav-temprule').classList.add('om-hidden');
-      document.getElementById('js-temprule').href = '#';
-    }
   }
 
   function addProfilesItems(state) {
@@ -137,6 +94,8 @@
     var directProfileDisp = document.getElementById('js-direct');
     var systemProfile = state.availableProfiles['+system']
     var directProfile = state.availableProfiles['+direct']
+    systemProfileDisp.querySelector('.om-profile-name').textContent = displayName(systemProfile);
+    directProfileDisp.querySelector('.om-profile-name').textContent = displayName(directProfile);
     var currentProfileClass = 'om-active';
     if (state.isSystemProfile) {
       systemProfileDisp.parentElement.classList.add('om-active');
@@ -180,122 +139,25 @@
         profileDisp.classList.add(currentProfileClass);
       }
 
-      if (profile.validResultProfiles) {
-        profileDisp.classList.add('om-has-dropdown');
-        link.classList.add('om-has-edit');
-        var toggle = document.createElement('div');
-        toggle.classList.add('om-edit-toggle');
-        var icon = document.createElement('span');
-        icon.setAttribute('class', 'glyphicon glyphicon-chevron-down');
-        toggle.appendChild(icon);
-
-        toggle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          e.preventDefault();
-          toggleDropdown(profileDisp,
-            createDefaultProfileDropdown.bind(profileDisp, profile));
-        });
-
-        link.appendChild(toggle);
-      }
-
       profilesContainer.insertBefore(profileDisp, profilesEnd);
+    });
+    profilesContainer.querySelectorAll('.om-nav-item > a').forEach(function(link) {
+      if (link.querySelector('.om-profile-name')) {
+        link.setAttribute('aria-pressed', link.parentElement.classList.contains('om-active') ? 'true' : 'false');
+      }
     });
   }
 
   function createMenuItemForProfile(profile, profiles) {
     var profileDisp = profileTemplate.cloneNode(true);
-    var text = OmegaTargetPopup.getMessage('profile_' + profile.name) ||
-      profile.name;
-    if (profile.defaultProfileName) {
-      text += ' [' + profile.defaultProfileName + ']';
-    }
+    var text = displayName(profile);
     profileDisp.querySelector('.om-profile-name').textContent = text;
 
-    var targetProfile = profile;
-    if (profile.profileType === 'VirtualProfile') {
-      targetProfile = profiles['+' + profile.defaultProfileName];
-    }
-
-    profileDisp.setAttribute('title',
-      targetProfile.desc || targetProfile.name || '');
-
-    var iconClass = iconForProfileType[targetProfile.profileType];
+    profileDisp.setAttribute('title', profile.desc || profile.name || '');
     var icon = profileDisp.querySelector('.glyphicon');
-    icon.setAttribute('class', 'glyphicon ' + iconClass)
-    icon.style.color = targetProfile.color;
-    if (targetProfile !== profile) {
-      icon.classList.add('om-virtual-profile-icon');
-    }
+    icon.setAttribute('class', 'glyphicon ' + iconForProfileType[profile.profileType]);
+    icon.style.color = profile.color;
     return profileDisp;
   }
 
-  function toggleDropdown(container, createDropdown) {
-    if (!container.classList.contains('om-dropdown-loaded')) {
-      var dropdown = createDropdown();
-      dropdown.classList.add('om-dropdown');
-      container.appendChild(dropdown);
-      container.classList.add('om-dropdown-loaded');
-    }
-    if (container.classList.contains('om-open')) {
-      container.classList.remove('om-open');
-    } else {
-      container.classList.add('om-open');
-    }
-  }
-
-  function createTempRuleDropdown() {
-    var ul = document.createElement('ul');
-    var state = OmegaPopup.state;
-    var pageInfo = OmegaPopup.pageInfo;
-
-    var profiles = state.validResultProfiles.map(function(name) {
-      return state.availableProfiles['+' + name];
-    }).sort(compareProfile);
-    profiles.forEach(function(profile) {
-      if (profile.name.indexOf('__') === 0) return;
-      if ((profile.name === OmegaPopup.state.currentProfileName) &&
-        (!pageInfo.tempRuleProfileName) &&
-        (state.validResultProfiles.length > 1)
-      ) return;
-      var li = createMenuItemForProfile(profile, state.availableProfiles);
-      var link = li.querySelector('a');
-      link.addEventListener('click', function() {
-        $script.ready('om-main', function() {
-          OmegaPopup.addTempRule(pageInfo.domain, profile.name);
-        });
-      });
-      if (profile.name === pageInfo.tempRuleProfileName) {
-        li.classList.add('om-active');
-      }
-      ul.appendChild(li);
-    });
-    return ul;
-  }
-
-  function createDefaultProfileDropdown(profile) {
-    var ul = document.createElement('ul');
-    var state = OmegaPopup.state;
-    var profiles = profile.validResultProfiles.map(function(name) {
-      return state.availableProfiles['+' + name];
-    }).sort(compareProfile);
-    profiles.forEach(function(resultProfile) {
-      if (resultProfile.name.indexOf('__') === 0) return;
-      if ((resultProfile === profile.currentProfileName) &&
-        (profile.validResultProfiles.length > 1)
-      ) return;
-      var li = createMenuItemForProfile(resultProfile, state.availableProfiles);
-      var link = li.querySelector('a');
-      link.addEventListener('click', function() {
-        $script.ready('om-main', function() {
-          OmegaPopup.setDefaultProfile(profile.name, resultProfile.name);
-        });
-      });
-      if (resultProfile.name === profile.currentProfileName) {
-        li.classList.add('om-active');
-      }
-      ul.appendChild(li);
-    });
-    return ul;
-  }
 })();

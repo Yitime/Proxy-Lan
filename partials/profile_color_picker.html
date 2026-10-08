@@ -1,0 +1,26 @@
+<div class="color-picker">
+  <button type="button" class="color-picker-trigger" ng-click="toggle()"
+          ng-attr-aria-expanded="{{picker.open}}" aria-label="选择模式颜色" aria-haspopup="dialog"
+          ng-attr-title="{{'模式颜色 ' + picker.color}}">
+    <span class="color-picker-preview" ng-style="{background: picker.color}"></span>
+  </button>
+  <div class="color-picker-panel" ng-if="picker.open" role="dialog" aria-label="模式颜色">
+    <div class="color-picker-heading"><strong>模式颜色</strong><button type="button" ng-click="picker.open = false" aria-label="关闭颜色选择">×</button></div>
+    <div class="color-palette">
+      <button type="button" ng-repeat="choice in palette" ng-click="selectColor(choice)"
+              ng-style="{background: choice}" ng-class="{selected: picker.hex == choice.toUpperCase()}"
+              ng-attr-aria-label="{{'选择颜色 ' + choice}}" ng-attr-aria-pressed="{{picker.hex == choice.toUpperCase()}}"></button>
+    </div>
+    <label class="color-custom-label">自定义颜色
+      <span class="color-custom-inputs">
+        <input type="color" ng-model="picker.nativeColor" ng-change="applyColor(picker.nativeColor)" aria-label="打开自定义颜色选择">
+        <input type="text" ng-model="picker.hex" ng-change="applyColor(picker.hex)" ng-class="{'color-invalid': picker.hexInvalid}"
+               ng-attr-aria-invalid="{{picker.hexInvalid}}" aria-label="十六进制颜色" maxlength="7" spellcheck="false">
+      </span>
+    </label>
+    <p ng-if="picker.hexInvalid" class="color-error">请输入 #RGB 或 #RRGGBB。</p>
+    <label class="color-opacity-label"><span>不透明度 <output>{{picker.opacity}}%</output></span>
+      <input type="range" min="0" max="100" step="1" ng-model="picker.opacity" ng-change="applyColor(picker.hex)" aria-label="颜色不透明度">
+    </label>
+  </div>
+</div>

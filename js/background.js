@@ -1,5 +1,5 @@
 (function() {
-  var Log, OmegaTargetCurrent, Promise, dispName, options, startupCheck, upgradeMigrateFn, zeroBackground, _ref,
+  var Log, OmegaTargetCurrent, Promise, dispName, options, zeroBackground, _ref,
     __hasProp = {}.hasOwnProperty;
 
   OmegaTargetCurrent = Object.create(OmegaTargetChromium);
@@ -12,20 +12,7 @@
 
   Log = OmegaTargetCurrent.Log;
 
-  globalThis.isBrowserRestart = false;
-
-  startupCheck = function() {
-    setTimeout(function() {
-      return globalThis.isBrowserRestart = false;
-    }, 2000);
-    return globalThis.isBrowserRestart;
-  };
-
   options = null;
-
-  chrome.runtime.onStartup.addListener(function() {
-    return globalThis.isBrowserRestart = true;
-  });
 
   if ((_ref = chrome.contextMenus) != null) {
     _ref.onClicked.addListener(function(info, tab) {
@@ -41,46 +28,12 @@
     });
   }
 
-  upgradeMigrateFn = function(details) {
-    var currentVersion, manifest, previousVersion;
-    if (details.reason === 'install') {
-      options.ready.then(function() {
-        return console.log('fresh install:', details);
-      });
-    }
-    if (details.reason === 'update') {
-      manifest = chrome.runtime.getManifest();
-      currentVersion = manifest.version;
-      previousVersion = details.previousVersion;
-      if (compareVersions.compare(currentVersion, previousVersion, '>')) {
-        if (compareVersions.compare('3.3.0', currentVersion, '>')) {
-          return options.ready.then(function() {
-            chrome.storage.local.clear();
-            return idbKeyval.clear();
-          });
-        } else {
-          switch (currentVersion) {
-            case '3.3.10':
-              return options.ready.then(function() {
-                return true;
-              });
-            case '3.3.11':
-              return options.ready.then(function() {
-                return true;
-              });
-          }
-        }
-      }
-    }
-  };
-
-  chrome.runtime.onInstalled.addListener(function(details) {
-    return setTimeout(function() {
-      return upgradeMigrateFn(details);
-    }, 2);
-  });
-
   dispName = function(name) {
+    if (options && (name === 'system' || name === 'direct')) {
+      var metadata = options.getAll()['-builtinProfiles'];
+      var profile = metadata && metadata['+' + name];
+      if (profile && typeof profile.displayName === 'string' && profile.displayName.trim()) return profile.displayName.trim();
+    }
     return chrome.i18n.getMessage('profile_' + name) || name;
   };
 
@@ -105,9 +58,9 @@
     iconCache = {};
     drawContext = null;
     drawError = null;
-    drawIcon = function(resultColor, profileColor) {
+    drawIcon = function(resultColor, automatic) {
       var cacheKey, canvas, e, icon, size, _i, _len, _ref1;
-      cacheKey = "omega+" + (resultColor != null ? resultColor : '') + "+" + profileColor;
+      cacheKey = "omega+" + resultColor + "+" + !!automatic;
       icon = iconCache[cacheKey];
       if (icon) {
         return icon;
@@ -125,11 +78,7 @@
           size = _ref1[_i];
           drawContext.scale(size, size);
           drawContext.clearRect(0, 0, 1, 1);
-          if (resultColor != null) {
-            drawOmega(drawContext, resultColor, profileColor);
-          } else {
-            drawOmega(drawContext, profileColor);
-          }
+          drawOmega(drawContext, resultColor, automatic);
           drawContext.setTransform(1, 0, 0, 1, 0, 0);
           icon[size] = drawContext.getImageData(0, 0, size, size);
           if (icon[size].data[3] === 255) {
@@ -160,15 +109,10 @@
         request = OmegaPac.Conditions.requestFromUrl(url);
         return options.matchProfile(request);
       }).then(function(_arg) {
-        var attached, badgeText, condition, condition2Str, current, currentName, details, direct, icon, name, prefix, profile, profileColor, realCurrentName, result, resultColor, results, shortTitle, _i, _len, _ref1, _ref2;
+        var attached, automatic, badgeText, condition, condition2Str, current, currentName, details, direct, icon, name, prefix, profile, result, resultColor, results, shortTitle, _i, _len, _ref1, _ref2;
         profile = _arg.profile, results = _arg.results;
         current = options.currentProfile();
         currentName = dispName(current.name);
-        if (current.profileType === 'VirtualProfile') {
-          realCurrentName = current.defaultProfileName;
-          currentName += " [" + (dispName(realCurrentName)) + "]";
-          current = options.profile(realCurrentName);
-        }
         details = '';
         direct = false;
         attached = false;
@@ -187,7 +131,7 @@
               }
               if (isHidden(name)) {
                 attached = true;
-              } else if (name !== realCurrentName) {
+              } else if (name !== current.name) {
                 details += chrome.i18n.getMessage('browserAction_defaultRuleDetails');
                 details += " => " + (dispName(name)) + "\n";
               }
@@ -213,10 +157,7 @@
               }
             }
           } else if (result.profileName) {
-            if (result.isTempRule) {
-              details += chrome.i18n.getMessage('browserAction_tempRulePrefix');
-              prefix = chrome.i18n.getMessage('browserAction_tempRulePrefix');
-            } else if (attached) {
+            if (attached) {
               details += chrome.i18n.getMessage('browserAction_attachedPrefix');
               prefix = chrome.i18n.getMessage('browserAction_attachedPrefix');
               attached = false;
@@ -229,16 +170,11 @@
           details = options.printProfile(current);
         }
         resultColor = profile.color;
-        profileColor = '#ffffff';
+        automatic = !options.isCurrentProfileStatic();
         icon = null;
-        if (profile.name === current.name && options.isCurrentProfileStatic()) {
-          // Static profile (fixed/system): single-color icon
-          if (!opts.skipIcon) {
-            icon = drawIcon(profile.color);
-          }
-        } else if (!opts.skipIcon) {
-          // Direct or dynamic profile: two-color icon with white inner ring
-          icon = drawIcon(resultColor, profileColor);
+        if (!opts.skipIcon) {
+          // Automatic modes add an A inside the result-colored ring.
+          icon = drawIcon(resultColor, automatic);
         }
         shortTitle = currentName;
         if (profile.name !== current.name) {
@@ -261,7 +197,7 @@
           prefix: prefix,
           icon: icon,
           resultColor: resultColor,
-          profileColor: profileColor
+          automatic: automatic
         };
       })["catch"](function() {
         return null;
@@ -277,7 +213,7 @@
     });
     options = new OmegaTargetCurrent.Options(storage, state, Log, proxyImpl);
     options._actionForUrl = actionForUrl;
-    options.initWithOptions(null, startupCheck);
+    options.initWithOptions(null);
     tabs = new OmegaTargetCurrent.ChromeTabs(actionForUrl);
     tabs.watch();
     options._inspect = new OmegaTargetCurrent.Inspect(function(url, tab) {
@@ -356,7 +292,7 @@
     });
     external = false;
     options.currentProfileChanged = function(reason) {
-      var current, currentName, details, icon, message, realCurrentName, shortTitle, title;
+      var current, currentName, details, icon, message, shortTitle, title;
       iconCache = {};
       if (reason === 'external') {
         external = true;
@@ -367,11 +303,6 @@
       currentName = '';
       if (current) {
         currentName = dispName(current.name);
-        if (current.profileType === 'VirtualProfile') {
-          realCurrentName = current.defaultProfileName;
-          currentName += " [" + (dispName(realCurrentName)) + "]";
-          current = options.profile(realCurrentName);
-        }
       }
       details = options.printProfile(current);
       if (currentName) {
@@ -393,7 +324,7 @@
       if (!current.name || !OmegaPac.Profiles.isInclusive(current)) {
         icon = drawIcon(current.color);
       } else {
-        icon = drawIcon(options.profile('direct').color, '#ffffff');
+        icon = drawIcon(options.profile('direct').color, true);
       }
       return tabs.resetAll({
         icon: icon,
@@ -407,6 +338,8 @@
           _error: 'error',
           name: obj.name,
           message: obj.message,
+          profileName: obj.profileName,
+          statusCode: obj.statusCode,
           stack: obj.stack,
           original: obj
         };
@@ -485,9 +418,6 @@
         'applyProfile',
         'getPageInfo',
         'addCondition',
-        'getTempRules',
-        'addTempRule',
-        'setDefaultProfile',
         'getAll',
         'renameProfile',
         'replaceRef',
@@ -546,7 +476,7 @@
           });
         });
       })["catch"](function(error) {
-        Log.error(request.method + ' ==>', error);
+        if (error.name !== 'ProxyConfigurationError') Log.error(request.method + ' ==>', error);
         if (reply) {
           respond({
             error: encodeError(error)

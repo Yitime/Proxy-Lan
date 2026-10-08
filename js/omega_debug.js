@@ -15,35 +15,6 @@
   };
 
   window.OmegaDebug = {
-    getProjectVersion: function() {
-      return chrome.runtime.getManifest().version;
-    },
-    getExtensionVersion: function() {
-      return chrome.runtime.getManifest().version;
-    },
-    downloadLog: function() {
-      return idbKeyval.entries(logStore).then(function(entries) {
-        var zip, zipFolder;
-        zip = new JSZip();
-        zipFolder = zip.folder('ZeroOmega');
-        entries.forEach(function(entry) {
-          if (entry[0] !== 'lastError') {
-            return zipFolder.file(entry[1].date + '.log', entry[1].val);
-          }
-        });
-        return zip.generateAsync({
-          compression: "DEFLATE",
-          compressionOptions: {
-            level: 9
-          },
-          type: 'blob'
-        });
-      }).then(function(blob) {
-        var filename;
-        filename = "ZeroOmegaLog_" + (Date.now()) + ".zip";
-        return saveAs(blob, filename);
-      });
-    },
     resetOptions: function() {
       return new Promise(function(resolve, reject) {
         chrome.runtime.sendMessage({
@@ -76,12 +47,11 @@
     },
     reportIssue: function() {
       return idbKeyval.get('lastError', logStore).then(function(lastError) {
-        var body, env, err, extensionVersion, finalUrl, projectVersion, url;
+        var body, env, err, extensionVersion, finalUrl, url;
         url = 'https://github.com/Yitime/Proxy-Lan/issues/new?title=&body=';
         finalUrl = url;
         try {
-          projectVersion = OmegaDebug.getProjectVersion();
-          extensionVersion = OmegaDebug.getExtensionVersion();
+          extensionVersion = chrome.runtime.getManifest().version;
           env = {
             extensionVersion: extensionVersion,
             projectVersion: extensionVersion,

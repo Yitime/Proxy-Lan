@@ -1,10 +1,10 @@
 {
   "name": "proxy-lan",
-  "version": "3.6.0",
+  "version": "3.7.0",
   "private": true,
   "scripts": {
     "check": "node scripts/validate.mjs",
-    "test": "node --test tests/utils.test.mjs tests/options-navigation.test.mjs tests/options-io.test.mjs tests/core-runtime.test.mjs"
+    "test": "node --test tests/options-navigation.test.mjs tests/options-io.test.mjs tests/core-runtime.test.mjs tests/error-log.test.mjs tests/options-errors.test.mjs"
   },
   "type": "module"
 }

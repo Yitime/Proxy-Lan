@@ -1,0 +1,62 @@
+<section class="settings-group rule-list-editor">
+  <h3>{{'options_group_ruleListConfig' | tr}}</h3>
+  <div class="subscription-status" aria-live="polite">
+    <div class="subscription-summary">
+      <strong ng-if="updating">正在更新规则……</strong>
+      <strong ng-if="!updating && subscriptionError()" class="text-danger">更新失败</strong>
+      <strong ng-if="!updating && !subscriptionError() && profile.sourceUrl && !profile.lastUpdate">尚未下载规则</strong>
+      <strong ng-if="!updating && !subscriptionError() && profile.sourceUrl && profile.lastUpdate">已更新 {{profile.lastUpdate | date:'yyyy-MM-dd HH:mm'}}</strong>
+      <strong ng-if="!updating && !subscriptionError() && !profile.sourceUrl">本地规则</strong>
+      <span class="rule-list-stats">{{ruleListRuleCount == null ? '规则数量待确认' : ruleListRuleCount + ' 条规则'}}</span>
+    </div>
+    <button type="button" ng-if="profile.sourceUrl" ng-disabled="updating" ng-click="$root.runAction(refreshRuleList())" class="btn btn-default btn-sm">{{updating ? '更新中……' : subscriptionError() ? '重试更新' : '更新规则'}}</button>
+  </div>
+  <p ng-if="subscriptionError()" class="subscription-error" role="alert">{{subscriptionError()}}</p>
+  <details class="subscription-settings">
+    <summary>订阅设置</summary>
+    <div class="form-group">
+      <label>{{'options_group_ruleListUrl' | tr}}</label>
+      <div input-group-clear type="url" model="profile.sourceUrl" class="width-limit"></div>
+      <p class="help-block">填写订阅地址；留空后可直接编辑本地规则。</p>
+    </div>
+    <div class="subscription-fields">
+      <div class="form-group">
+        <label>{{'options_ruleListFormat' | tr}}</label>
+        <select ng-model="profile.format" ng-options="format as ('ruleListFormat_' + format | tr) for format in ruleListFormats" class="form-control"></select>
+      </div>
+      <div class="form-group">
+        <label>{{'options_downloadInterval' | tr}}</label>
+        <select ng-model="options['-downloadInterval']" ng-options="interval as (downloadIntervalI18n(interval) | tr) for interval in downloadIntervals" class="form-control"></select>
+      </div>
+      <div class="form-group" ng-if="hideTargets !== 'true'">
+        <label>{{'options_ruleListMatchProfile' | tr}}</label>
+        <div omega-profile-select="options | profiles:profile" ng-model="profile.matchProfileName" disp-name="dispNameFilter" options="options"></div>
+      </div>
+      <div class="form-group" ng-if="hideTargets !== 'true'">
+        <label>{{'options_ruleListDefaultProfile' | tr}}</label>
+        <div omega-profile-select="options | profiles:profile" ng-model="profile.defaultProfileName" disp-name="dispNameFilter" options="options"></div>
+      </div>
+    </div>
+  </details>
+  <details class="rule-list-source" ng-open="!profile.sourceUrl || ruleListValidation.valid === false">
+    <summary>{{profile.sourceUrl ? '查看规则原文' : '编辑本地规则'}}</summary>
+    <div class="rule-list-toolbar rule-list-search-toolbar" ng-if="!profile.sourceUrl">
+      <label class="rule-list-search-field"><span>{{'options_ruleListSearch' | tr}}</span><input type="search" class="form-control input-sm" ng-model="ruleListSearch" ng-change="updateRuleListMatchCount()"></label>
+      <label class="rule-list-search-field"><span>{{'options_ruleListReplace' | tr}}</span><input type="text" class="form-control input-sm" ng-model="ruleListReplace"></label>
+      <button type="button" class="btn btn-default btn-sm" ng-click="replaceRuleListText()" ng-disabled="!ruleListSearch || !ruleListMatchCount">{{'options_ruleListReplaceAll' | tr}} <span ng-if="ruleListMatchCount">({{ruleListMatchCount}})</span></button>
+    </div>
+    <div class="rule-list-toolbar">
+      <div class="rule-list-actions">
+        <input class="omega-file-input rule-list-file" type="file" accept=".txt,.sorl,.ssrl,text/plain" omega-upload="importRuleList($content)" omega-error="ruleListImportError($error)">
+        <button ng-if="!profile.sourceUrl" type="button" class="btn btn-default btn-sm" ng-click="triggerRuleListImport()">{{'options_ruleListImport' | tr}}</button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="validateRuleList()">{{'options_ruleListValidate' | tr}}</button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="copyRuleList()" ng-disabled="!profile.ruleList">{{'options_ruleListCopy' | tr}}</button>
+        <button type="button" class="btn btn-default btn-sm" ng-click="downloadRuleList()" ng-disabled="!profile.ruleList">{{'options_ruleListDownload' | tr}}</button>
+        <button ng-if="!profile.sourceUrl" type="button" class="btn btn-danger btn-sm" ng-click="clearRuleList()" ng-disabled="!profile.ruleList">{{'options_ruleListClear' | tr}}</button>
+      </div>
+    </div>
+    <textarea ng-model="profile.ruleList" ng-change="queueRuleListValidation()" rows="8" ng-readonly="!!profile.sourceUrl" aria-label="规则列表原文" class="monospace form-control rule-list-text"></textarea>
+    <p class="rule-list-feedback" ng-if="ruleListFeedback" aria-live="polite">{{ruleListFeedback}}</p>
+    <p class="rule-list-validation" ng-class="{'rule-list-valid': ruleListValidation.valid, 'rule-list-invalid': ruleListValidation.valid === false}" ng-if="ruleListValidation" aria-live="polite">{{ruleListValidation.message}}</p>
+  </details>
+</section>

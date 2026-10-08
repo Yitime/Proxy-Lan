@@ -1,10 +1,7 @@
 (function() {
   handleClick('js-option', showOptions);
-  handleClick('js-temprule', showTempRuleDropdown);
   handleClick('js-direct', applyProfile.bind(this, 'direct'));
   handleClick('js-system', applyProfile.bind(this, 'system'));
-  OmegaPopup.addTempRule = addTempRule;
-  OmegaPopup.setDefaultProfile = setDefaultProfile;
   OmegaPopup.applyProfile = applyProfile;
   return;
 
@@ -31,26 +28,20 @@
 
   function applyProfile(profileName) {
     $script.ready('om-target', function() {
-      OmegaTargetPopup.applyProfile(profileName, closePopup);
+      var errorPanel = document.getElementById('js-apply-error');
+      errorPanel.hidden = true;
+      OmegaTargetPopup.applyProfile(profileName, function(error) {
+        if (!error) return closePopup();
+        document.getElementById('js-apply-error-text').textContent = error.message || '模式切换失败，请重试。';
+        errorPanel.hidden = false;
+        var configure = document.getElementById('js-configure-profile');
+        configure.hidden = error.name !== 'ProxyConfigurationError';
+        configure.onclick = function(event) {
+          event.preventDefault();
+          OmegaTargetPopup.openOptions('#!/profile/' + encodeURIComponent(error.profileName || profileName), closePopup);
+        };
+      });
     });
   }
 
-  function setDefaultProfile(profileName, defaultProfileName) {
-    $script.ready('om-target', function() {
-      OmegaTargetPopup.setDefaultProfile(profileName, defaultProfileName,
-        closePopup);
-    });
-  }
-
-  function addTempRule(domain, profileName) {
-    $script.ready('om-target', function() {
-      OmegaTargetPopup.addTempRule(domain, profileName, closePopup);
-    });
-  }
-
-  function showTempRuleDropdown() {
-    $script.ready('om-dropdowns', function() {
-      OmegaPopup.showTempRuleDropdown();
-    });
-  }
 })();

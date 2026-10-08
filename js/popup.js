@@ -1,5 +1,5 @@
 (function() {
-  var customProfiles, i, module, moveDown, moveUp, shortcutKeys, subdomainLevel, summaryDetail, _i,
+  var module, subdomainLevel = 0,
     __hasProp = {}.hasOwnProperty;
 
   module = angular.module('omegaPopup', ['omegaTarget', 'omegaDecoration', 'ui.bootstrap', 'ui.validate']);
@@ -11,127 +11,15 @@
   module.filter('dispName', function(omegaTarget) {
     return function(name) {
       if (typeof name === 'object') {
+        if (name.displayName) return name.displayName;
         name = name.name;
       }
       return omegaTarget.getMessage('profile_' + name) || name;
     };
   });
 
-  moveUp = function(activeIndex, items) {
-    var i, _ref;
-    i = activeIndex - 1;
-    if (i >= 0) {
-      return (_ref = items.eq(i)[0]) != null ? _ref.focus() : void 0;
-    }
-  };
-
-  moveDown = function(activeIndex, items) {
-    var _ref;
-    return (_ref = items.eq(activeIndex + 1)[0]) != null ? _ref.focus() : void 0;
-  };
-
-  shortcutKeys = {
-    38: moveUp,
-    40: moveDown,
-    74: moveDown,
-    75: moveUp,
-    48: '+direct',
-    83: '+system',
-    191: 'help',
-    63: 'help',
-    69: 'external',
-    65: 'addRule',
-    43: 'addRule',
-    61: 'addRule',
-    84: 'tempRule',
-    79: 'option',
-    82: 'requestInfo'
-  };
-
-  for (i = _i = 1; _i <= 9; i = ++_i) {
-    shortcutKeys[48 + i] = i;
-  }
-
-  subdomainLevel = 0;
-
-  summaryDetail = false;
-
-  customProfiles = (function() {
-    var _customProfiles;
-    _customProfiles = null;
-    return function() {
-      return _customProfiles != null ? _customProfiles : _customProfiles = jQuery('.custom-profile:not(.ng-hide) > a');
-    };
-  })();
-
-  jQuery(document).on('keydown', function(e) {
-    var handler, items, key, keys, shortcut, showHelp, _ref, _ref1;
-    handler = shortcutKeys[e.keyCode];
-    if (!handler) {
-      return;
-    }
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      return;
-    }
-    switch (typeof handler) {
-      case 'string':
-        switch (handler) {
-          case 'help':
-            showHelp = function(element, key) {
-              var span;
-              if (typeof element === 'string') {
-                element = jQuery("a[data-shortcut='" + element + "']");
-              }
-              span = jQuery('.shortcut-help', element);
-              if (span.length === 0) {
-                span = jQuery('<span/>').addClass('shortcut-help');
-              }
-              span.text(key);
-              return element.find('.glyphicon').after(span);
-            };
-            keys = {
-              '+direct': '0',
-              '+system': 'S',
-              'external': 'E',
-              'addRule': 'A',
-              'tempRule': 'T',
-              'option': 'O',
-              'requestInfo': 'R'
-            };
-            for (shortcut in keys) {
-              key = keys[shortcut];
-              showHelp(shortcut, key);
-            }
-            customProfiles().each(function(i, el) {
-              if (i <= 8) {
-                return showHelp(jQuery(el), i + 1);
-              }
-            });
-            break;
-          default:
-            if ((_ref = jQuery("a[data-shortcut='" + handler + "']")[0]) != null) {
-              _ref.click();
-            }
-        }
-        break;
-      case 'number':
-        if ((_ref1 = customProfiles().eq(handler - 1)) != null) {
-          _ref1.click();
-        }
-        break;
-      case 'function':
-        items = jQuery('.popup-menu-nav > li:not(.ng-hide) > a');
-        i = items.index(jQuery(e.target).closest('a'));
-        if (i === -1) {
-          i = items.index(jQuery('.popup-menu-nav > li.active > a'));
-        }
-        handler(i, items);
-    }
-    return false;
-  });
-
-  module.controller('PopupCtrl', function($scope, $window, $q, omegaTarget, profileIcons, profileOrder, dispNameFilter, getVirtualTarget) {
-    var generateConditionSuggestion, generateDomainInfos, preselectedProfileNameForCondition, refresh, refreshOnProfileChange;
+  module.controller('PopupCtrl', function($scope, $window, $q, omegaTarget, profileIcons, profileOrder, dispNameFilter) {
+    var generateConditionSuggestion, preselectedProfileNameForCondition, refresh, refreshOnProfileChange;
     $scope.closePopup = function() {
       return $window.top.close();
     };
@@ -171,27 +59,16 @@
         return void 0;
       }
     };
-    $scope.getProfileTitle = function(profile, normal) {
-      var desc;
-      desc = '';
-      while (profile) {
-        desc = profile.desc;
-        profile = getVirtualTarget(profile, $scope.availableProfiles);
-      }
-      return desc || (profile != null ? profile.name : void 0) || '';
+    $scope.getProfileTitle = function(profile) {
+      return profile ? (profile.desc || profile.name || '') : '';
     };
     $scope.openOptions = function(hash) {
       return omegaTarget.openOptions(hash).then(function() {
         return $window.top.close();
       });
     };
-    $scope.openConditionHelp = function() {
-      var pname;
-      pname = encodeURIComponent($scope.currentProfileName);
-      return $scope.openOptions("#!/profile/" + pname + "?help=condition");
-    };
     $scope.applyProfile = function(profile) {
-      var apply, next;
+      var next;
       next = function() {
         if (profile.profileType === 'SwitchProfile') {
           return omegaTarget.state('web.switchGuide').then(function(switchGuide) {
@@ -201,76 +78,21 @@
           });
         }
       };
-      if (!refreshOnProfileChange) {
-        omegaTarget.applyProfileNoReply(profile.name);
-        apply = next();
-      } else {
-        apply = omegaTarget.applyProfile(profile.name).then(function() {
-          return omegaTarget.refreshActivePage();
-        }).then(next);
-      }
-      if (apply) {
-        return apply.then(function() {
-          return $window.top.close();
-        });
-      } else {
+      $scope.applyError = null;
+      return omegaTarget.applyProfile(profile.name).then(function() {
+        return refreshOnProfileChange ? omegaTarget.refreshActivePage() : null;
+      }).then(next).then(function() {
         return $window.top.close();
-      }
+      }, function(error) {
+        $scope.applyError = { message: error.message || '模式切换失败，请重试。', profileName: error.original && error.original.profileName || profile.name, configurable: error.name === 'ProxyConfigurationError' };
+      });
     };
-    $scope.tempRuleMenu = {
-      open: false
-    };
+
     $scope.nameExternal = {
       open: false
     };
-    $scope.addTempRule = function(domain, profileName) {
-      $scope.tempRuleMenu.open = false;
-      return omegaTarget.addTempRule(domain, profileName).then(function() {
-        omegaTarget.state('lastProfileNameForCondition', profileName);
-        return refresh();
-      });
-    };
-    $scope.setDefaultProfile = function(profileName, defaultProfileName) {
-      return omegaTarget.setDefaultProfile(profileName, defaultProfileName).then(function() {
-        return refresh();
-      });
-    };
     $scope.addCondition = function(condition, profileName) {
       return omegaTarget.addCondition(condition, profileName).then(function() {
-        omegaTarget.state('lastProfileNameForCondition', profileName);
-        return refresh();
-      });
-    };
-    $scope.addConditionForDomains = function(domains, profileName) {
-      var conditions, domain, enabled;
-      conditions = [];
-      for (domain in domains) {
-        if (!__hasProp.call(domains, domain)) continue;
-        enabled = domains[domain];
-        if (enabled) {
-          conditions.push({
-            conditionType: 'HostWildcardCondition',
-            pattern: domain
-          });
-        }
-      }
-      return omegaTarget.addCondition(conditions, profileName).then(function() {
-        omegaTarget.state('lastProfileNameForCondition', profileName);
-        return refresh();
-      });
-    };
-    $scope.addTempConditionForDomains = function(domains, profileName) {
-      var conditions, domain, enabled, promises;
-      conditions = [];
-      promises = [];
-      for (domain in domains) {
-        if (!__hasProp.call(domains, domain)) continue;
-        enabled = domains[domain];
-        if (enabled) {
-          promises.push(omegaTarget.addTempRule(domain.substring(2), profileName, 1));
-        }
-      }
-      return Promise.all(promises).then(function() {
         omegaTarget.state('lastProfileNameForCondition', profileName);
         return refresh();
       });
@@ -297,12 +119,9 @@
         return;
       }
       $scope.showConditionForm = false;
-      return $scope.showRequestInfo = false;
     };
     preselectedProfileNameForCondition = 'direct';
-    if ($window.location.hash === '#!requestInfo') {
-      $scope.showRequestInfo = true;
-    } else if ($window.location.hash === '#!external') {
+    if ($window.location.hash === '#!external') {
       $scope.nameExternal = {
         open: true
       };
@@ -355,107 +174,14 @@
         } else if (profile.name.charCodeAt(0) !== charCodeUnderscore) {
           $scope.customProfiles.push(profile);
         }
-        if (profile.validResultProfiles) {
-          profile.validResultProfiles = profilesByNames(profile.validResultProfiles);
-        }
       }
       return $scope.customProfiles.sort(profileOrder);
-    });
-    $scope.domainsForCondition = {};
-    $scope.requestInfoProvided = null;
-    generateDomainInfos = function(info) {
-      var domain, domainInfo, domains, summary, summaryItem, _ref;
-      domains = [];
-      summary = info.summary;
-      if (!summaryDetail) {
-        summary = {};
-        _ref = info.summary;
-        for (domain in _ref) {
-          if (!__hasProp.call(_ref, domain)) continue;
-          domainInfo = _ref[domain];
-          summaryItem = summary[domainInfo.baseDomain];
-          if (!summaryItem) {
-            summaryItem = {
-              errorCount: domainInfo.errorCount,
-              domain: domainInfo.baseDomain,
-              baseDomain: domainInfo.baseDomain
-            };
-            summary[domainInfo.baseDomain] = summaryItem;
-          } else {
-            summaryItem.errorCount += domainInfo.errorCount;
-          }
-        }
-      }
-      for (domain in summary) {
-        if (!__hasProp.call(summary, domain)) continue;
-        domainInfo = summary[domain];
-        domainInfo.domain = domain;
-        domains.push(domainInfo);
-      }
-      domains.sort(function(a, b) {
-        return b.errorCount - a.errorCount;
-      });
-      return domains;
-    };
-    $scope.toggleSummarDetail = function(event) {
-      var domain, info, _base, _j, _len, _name, _ref, _results;
-      event.preventDefault();
-      event.stopPropagation();
-      $scope.domainsForCondition = {};
-      $scope.requestInfoProvided = null;
-      summaryDetail = !summaryDetail;
-      info = $scope.requestInfo;
-      info.domains = generateDomainInfos(info);
-      $scope.requestInfo = info;
-      if ($scope.requestInfoProvided == null) {
-        $scope.requestInfoProvided = (info != null ? info.domains.length : void 0) > 0;
-      }
-      _ref = info.domains;
-      _results = [];
-      for (_j = 0, _len = _ref.length; _j < _len; _j++) {
-        domain = _ref[_j];
-        _results.push((_base = $scope.domainsForCondition)[_name = domain.domain] != null ? _base[_name] : _base[_name] = true);
-      }
-      return _results;
-    };
-    $scope.inspectNetworkTraffic = function(event) {
-      var activeTabId, sp, url;
-      event.preventDefault();
-      event.stopPropagation();
-      sp = new URLSearchParams(document.location.search);
-      activeTabId = sp.get('activeTabId');
-      url = chrome.runtime.getURL('popup/network/index.html?tabId=') + activeTabId;
-      return chrome.tabs.create({
-        url: url
-      });
-    };
-    omegaTarget.setRequestInfoCallback(function(info) {
-      info.domains = generateDomainInfos(info);
-      return $scope.$apply(function() {
-        var domain, _base, _j, _len, _name, _ref;
-        $scope.requestInfo = info;
-        if ($scope.requestInfoProvided == null) {
-          $scope.requestInfoProvided = (info != null ? info.domains.length : void 0) > 0;
-        }
-        _ref = info.domains;
-        for (_j = 0, _len = _ref.length; _j < _len; _j++) {
-          domain = _ref[_j];
-          if ((_base = $scope.domainsForCondition)[_name = domain.domain] == null) {
-            _base[_name] = true;
-          }
-        }
-        return $scope.profileForDomains != null ? $scope.profileForDomains : $scope.profileForDomains = preselectedProfileNameForCondition;
-      });
     });
     $q.all([omegaTarget.state('currentProfileCanAddRule'), omegaTarget.getActivePageInfo()]).then(function(_arg) {
       var canAddRule, info;
       canAddRule = _arg[0], info = _arg[1];
       $scope.currentProfileCanAddRule = canAddRule;
       if (info) {
-        $scope.currentTempRuleProfile = info.tempRuleProfileName;
-        if ($scope.currentTempRuleProfile) {
-          preselectedProfileNameForCondition = $scope.currentTempRuleProfile;
-        }
         $scope.currentDomain = info.domain;
         $scope.subdomain = info.subdomain;
         if ($window.location.hash === '#!addRule') {

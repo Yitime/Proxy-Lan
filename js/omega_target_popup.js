@@ -22,8 +22,6 @@ function callBackground(method, args, cb, refreshActivePage) {
   });
 }
 
-var requestInfoCallback = null;
-
 OmegaTargetPopup = {
   getState: function (keys, cb) {
     callBackground('getState', [keys], cb);
@@ -36,7 +34,7 @@ OmegaTargetPopup = {
     return;
   },
   applyProfile: function (name, cb) {
-    callBackgroundNoReply('applyProfile', [name], cb);
+    callBackground('applyProfile', [name], cb, true);
   },
   openOptions: function (hash, cb) {
     var called = false;
@@ -91,22 +89,8 @@ OmegaTargetPopup = {
       callBackground('getPageInfo', [args], cb)
     });
   },
-  setDefaultProfile: function(profileName, defaultProfileName, cb) {
-    callBackgroundNoReply('setDefaultProfile',
-      [profileName, defaultProfileName], cb);
-  },
   addCondition: function(condition, profileName, cb){
     callBackground('addCondition', [condition, profileName], cb)
-  },
-  getTempRules: function(cb){
-    callBackground('getTempRules', [], cb);
-  },
-  addTempRule: function(domain, profileName, toggle, cb) {
-    if (typeof toggle == 'function') {
-      cb = toggle;
-      toggle = null;
-    }
-    callBackground('addTempRule', [domain, profileName, toggle], cb, true);
   },
   openManage: function(cb) {
     chrome.tabs.create({

@@ -1,13 +1,10 @@
 import zeroLocalStorage from "./localstorage-polyfill.js"
 import ZeroIndexedDBFactory from './indexedDB.js'
 
-import "./lib/zero-dependencies/compare-versions/compare-versions.js"
 import "./js/background_preload.js"
 import "./lib/zero-dependencies/idb-keyval/idb-keyval.js"
 import './log.js'
 import "./js/log_error.js"
-//import "./log.js"
-//import "./lib/FileSaver/FileSaver.min.js"
 import "./js/omega_debug.js"
 import "./js/omega_pac.min.js"
 import "./js/omega_target.min.js"

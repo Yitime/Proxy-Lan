@@ -36,7 +36,7 @@
   };
 
   angular.module('omegaTarget', []).factory('omegaTarget', function($q) {
-    var callBackground, callBackgroundNoReply, connectBackground, decodeError, isChromeUrl, omegaTarget, optionsChangeCallback, prefix, requestInfoCallback, urlParser;
+    var callBackground, callBackgroundNoReply, decodeError, isChromeUrl, omegaTarget, optionsChangeCallback, prefix, urlParser;
     decodeError = function(obj) {
       var err;
       if (obj._error === 'error') {
@@ -81,51 +81,30 @@
       });
       return d.promise;
     };
-    connectBackground = function(name, message, callback) {
-      var onDisconnect, port;
-      port = chrome.runtime.connect({
-        name: name
-      });
-      onDisconnect = function() {
-        port.onDisconnect.removeListener(onDisconnect);
-        return port.onMessage.removeListener(callback);
-      };
-      port.onDisconnect.addListener(onDisconnect);
-      port.postMessage(message);
-      port.onMessage.addListener(callback);
-    };
     isChromeUrl = function(url) {
       return url.substr(0, 6) === 'chrome' || url.substr(0, 4) === 'moz-' || url.substr(0, 6) === 'about:';
     };
     optionsChangeCallback = [];
-    requestInfoCallback = null;
     prefix = 'omega.local.';
     urlParser = document.createElement('a');
     omegaTarget = {
       options: null,
       state: function(name, value) {
-        var d, newItem;
-        d = $q.defer();
+        var newItem;
         if (arguments.length === 1) {
-          if (Array.isArray(name)) {
-            callBackground('getState', name).then(function(values) {
-              return d.resolve(name.map(function(key) {
-                return values[key];
-              }));
-            });
-          } else {
-            callBackground('getState', [name]).then(function(values) {
-              return d.resolve(values[name]);
-            });
-          }
+          return callBackground('getState', Array.isArray(name) ? name : [name]).then(function(values) {
+            if (!values || typeof values !== 'object' || Array.isArray(values)) {
+              throw new Error('Background returned invalid state');
+            }
+            return Array.isArray(name) ? name.map(function(key) { return values[key]; }) : values[name];
+          });
         } else {
           newItem = {};
           newItem[name] = value;
-          callBackground('setState', newItem).then(function() {
-            return d.resolve(value);
+          return callBackground('setState', newItem).then(function() {
+            return value;
           });
         }
-        return d.promise;
       },
       lastUrl: function(url) {
         var name;
@@ -209,17 +188,11 @@
       applyProfileNoReply: function(name) {
         return callBackgroundNoReply('applyProfile', name);
       },
-      addTempRule: function(domain, profileName, toggle) {
-        return callBackground('addTempRule', domain, profileName, toggle);
-      },
       addCondition: function(condition, profileName) {
         return callBackground('addCondition', condition, profileName);
       },
       addProfile: function(profile) {
         return callBackground('addProfile', profile).then(omegaTarget.refresh);
-      },
-      setDefaultProfile: function(profileName, defaultProfileName) {
-        return callBackground('setDefaultProfile', profileName, defaultProfileName);
       },
       getActivePageInfo: function(activeTabId) {
         var clearBadge, d;
@@ -235,9 +208,6 @@
             tabId: tab.id,
             url: tab.pendingUrl || tab.url
           };
-          if (tab.id && requestInfoCallback) {
-            connectBackground('tabRequestInfo', args, requestInfoCallback);
-          }
           return d.resolve(callBackground('getPageInfo', args));
         });
         return d.promise.then(function(info) {
@@ -281,9 +251,6 @@
         return chrome.tabs.create({
           url: 'chrome://extensions/configureCommands'
         });
-      },
-      setRequestInfoCallback: function(callback) {
-        return requestInfoCallback = callback;
       }
     };
     return omegaTarget;

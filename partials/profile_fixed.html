@@ -1,5 +1,6 @@
 
-<div ng-controller="FixedProfileCtrl">
+<form ng-controller="FixedProfileCtrl" name="proxyForm" novalidate>
+  <p ng-if="proxyNotConfigured()" class="alert alert-info">尚未配置代理服务器。请选择代理协议，并填写地址和端口。</p>
   <section class="settings-group settings-group-fixed-servers">
     <h3>{{'options_group_proxyServers' | tr}}</h3>
     <div class="table-responsive">
@@ -14,25 +15,27 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="scheme in urlSchemes" ng-show="scheme == &quot;&quot; || showAdvanced">
+          <tr ng-form="proxyRow" ng-repeat="scheme in urlSchemes" ng-show="scheme == &quot;&quot; || showAdvanced">
             <td>{{schemeDisp[scheme] || ('options_scheme_default' | tr)}}</td>
             <td>
               <select ng-model="proxyEditors[scheme].scheme" ng-options="opt.value as opt.label for opt in optionsForScheme[scheme]" class="form-control"></select>
             </td>
             <td ng-if="proxyEditors[scheme].scheme">
-              <input type="text" ng-model="proxyEditors[scheme].host" required="required" class="form-control"/>
+              <input type="text" name="host" ng-model="proxyEditors[scheme].host" ng-model-options="{allowInvalid: true}" ui-validate="{host: 'validProxyHost($value)'}" required="required" placeholder="域名或 IP 地址" aria-describedby="proxy-host-error-{{$index}}" class="form-control"/>
+              <p id="proxy-host-error-{{$index}}" class="field-error" ng-show="proxyRow.host.$invalid">填写域名或 IP，不含协议、路径或端口。</p>
             </td>
             <td ng-if="!proxyEditors[scheme].scheme">
               <input type="text" value="" placeholder="{{proxyEditors[&quot;&quot;].host}}" disabled="disabled" class="form-control"/>
             </td>
             <td ng-if="proxyEditors[scheme].scheme">
-              <input type="number" min="1" ng-model="proxyEditors[scheme].port" required="required" class="form-control"/>
+              <input type="number" name="port" min="1" max="65535" step="1" ng-model="proxyEditors[scheme].port" ng-model-options="{allowInvalid: true}" ui-validate="{port: 'validProxyPort($value)'}" required="required" aria-describedby="proxy-port-error-{{$index}}" class="form-control"/>
+              <p id="proxy-port-error-{{$index}}" class="field-error" ng-show="proxyRow.port.$invalid">输入 1–65535 的整数。</p>
             </td>
             <td ng-if="!proxyEditors[scheme].scheme">
               <input type="number" value="" placeholder="{{proxyEditors[&quot;&quot;].port}}" disabled="disabled" class="form-control"/>
             </td>
             <td class="proxy-actions">
-              <button ng-class="isProxyAuthActive(scheme) ? &quot;btn-success&quot; : &quot;btn-default&quot;" type="button" role="button" ng-click="editProxyAuth(scheme)" title="{{&quot;options_proxy_auth&quot; | tr}}" class="btn btn-xs proxy-auth-toggle"><span class="glyphicon glyphicon-lock"></span></button>
+              <button ng-class="isProxyAuthActive(scheme) ? &quot;btn-success&quot; : &quot;btn-default&quot;" type="button" role="button" ng-click="runAction(editProxyAuth(scheme))" title="{{&quot;options_proxy_auth&quot; | tr}}" class="btn btn-xs proxy-auth-toggle"><span class="glyphicon glyphicon-lock"></span></button>
             </td>
           </tr>
         </tbody>
@@ -52,4 +55,4 @@
     <p class="help-block"><a href="https://developer.chrome.com/extensions/proxy#bypass_list" target="_blank">{{'options_bypassListHelpLinkText' | tr}}</a></p>
     <textarea rows="10" ng-model="bypassList" ng-model-options="{updateOn:'blur'}" class="monospace form-control width-limit"></textarea>
   </section>
-</div>
+</form>

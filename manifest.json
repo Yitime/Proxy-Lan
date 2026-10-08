@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "小蓝代理工具",
-  "version": "3.6.0",
-  "description": "轻松快捷地管理和切换多个代理设置。",
+  "version": "3.7.0",
+  "description": "简洁的浏览器代理工具，支持直连、系统代理与自动分流，内置 GFWList 规则订阅。",
   "icons": {
     "16": "img/icons/omega-action-16.png",
     "24": "img/icons/omega-action-24.png",

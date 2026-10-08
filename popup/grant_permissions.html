@@ -1,50 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-  <link rel="stylesheet" href="../css/theme.css">
   <meta charset="UTF-8">
-  <title>Permissions required</title>
-  <style>
-*{
-  box-sizing: border-box;
-}
-html,body{
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-.incognito-access-img-container{
-  margin-right: 20px;
-}
-.incognito-access-img{
-  width: 100%;
-  max-width: 100%;
-  border: 2px solid;
-  border-radius: 5px;
-  height: auto;
-}
-  </style>
+  <title>完善权限 · 小蓝代理工具</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="css/dialog.css">
+  <link rel="stylesheet" href="../css/theme.css">
 </head>
-<body style="opacity: 0">
-  <ol style="margin-right: 20px;">
-    <li class="site-permissions-required">
-      <div>
-        <p>
-          <strong>Site permissions is required.</strong> The Api <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/proxy/onRequest">proxy.onRequest</a> requires site permissions. <button id="grant-permissions-btn">grant site permissions</button>
-        </p>
-      </div>
-    </li>
-    <li class="incognito-access-required">
-      <div>
-        <p><strong>IncognitoAccess is required.</strong>According to <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/proxy/settings" target="_blank"/>Firefox API</a> requirements.Changing proxy settings requires private browsing window access.</p>
-        <div class="incognito-access-img-container">
-          <img class="incognito-access-img" src="./img/AllowedIncognitoAccess.png"/>
-        </div>
-      </div>
-    </li>
-  </ol>
-  <dialog opened class="loading-dialog">loading...</dialog>
+<body>
+  <main class="permissions-page">
+    <h1>完成连接前的最后一步</h1>
+    <p class="permissions-intro">请允许以下权限，让小蓝能够应用代理设置。</p>
+    <section class="permission-card site-permissions-required">
+      <h2>网站访问权限</h2>
+      <p>允许小蓝根据当前网站匹配代理规则。</p>
+      <button id="grant-permissions-btn" class="om-btn om-btn-primary" type="button">允许网站访问</button>
+    </section>
+    <section class="permission-card incognito-access-required">
+      <h2>隐私窗口权限</h2>
+      <p>请在浏览器的扩展管理页中，允许小蓝在隐私窗口中运行。设置完成后，重新打开代理弹窗。</p>
+      <ol class="permission-steps">
+        <li><span>1</span><div><strong>打开扩展管理</strong><p>从浏览器菜单进入扩展或附加组件管理页面。</p></div></li>
+        <li><span>2</span><div><strong>找到小蓝代理工具</strong><p>打开扩展详情，找到隐私窗口相关设置。</p></div></li>
+        <li><span>3</span><div><strong>允许在隐私窗口中运行</strong><p>完成设置后，重新打开小蓝弹窗即可。</p></div></li>
+      </ol>
+    </section>
+    <p id="permissions-error" class="om-text-danger" role="alert" hidden></p>
+  </main>
+  <dialog class="loading-dialog" aria-label="检查权限">正在检查权限……</dialog>
   <script src="../js/omega_target_popup.js"></script>
   <script src="js/grant_permissions.js"></script>
 </body>

@@ -8,7 +8,6 @@
 
   window.UglifyJS_NoUnsafeEval = true;
 
-  globalThis.startupCheck = void 0;
 
   initContextMenu = function() {
     if (!chrome.contextMenus) {
@@ -19,23 +18,6 @@
         console.error('Unable to clear context menus', chrome.runtime.lastError);
       }
       const menuItems = [
-        {
-          id: 'enableQuickSwitch',
-          title: chrome.i18n.getMessage('contextMenu_enableQuickSwitch'),
-          type: 'checkbox',
-          checked: false,
-          contexts: ["action"]
-        },
-        {
-          id: 'network',
-          title: chrome.i18n.getMessage('contextMenu_networkMonitor'),
-          contexts: ["action"]
-        },
-        {
-          id: 'tempRulesManager',
-          title: chrome.i18n.getMessage('contextMenu_tempRulesManager'),
-          contexts: ["action"]
-        },
         {
           id: 'reportIssue',
           title: chrome.i18n.getMessage('popup_reportIssues'),
@@ -62,28 +44,6 @@
     _ref.onClicked.addListener(function(info, tab) {
       var url;
       switch (info.menuItemId) {
-        case 'network':
-          url = chrome.runtime.getURL('popup/network/index.html?tabId=') + tab.id;
-          return chrome.tabs.create({
-            url: url
-          });
-        case 'tempRulesManager':
-          url = chrome.runtime.getURL('popup/temp_rules/index.html');
-          return chrome.tabs.query({
-            url: url
-          }, function(tabs) {
-            var props;
-            if (tabs.length > 0) {
-              props = {
-                active: true
-              };
-              return chrome.tabs.update(tabs[0].id, props);
-            } else {
-              return chrome.tabs.create({
-                url: url
-              });
-            }
-          });
         case 'options':
           return (globalThis.browser || chrome).runtime.openOptionsPage();
         case 'reload':

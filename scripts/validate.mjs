@@ -65,6 +65,18 @@ for (const htmlFile of files.filter((file) => file.endsWith('.html') && !relativ
   }
 }
 
+for (const cssFile of files.filter((file) => file.endsWith('.css'))) {
+  const source = fs.readFileSync(cssFile, 'utf8')
+  for (const match of source.matchAll(/url\(\s*['"]?([^'"\s)]+)['"]?\s*\)/g)) {
+    const ref = match[1]
+    if (/^(?:[a-z]+:|#|\/)/i.test(ref)) continue
+    const cleanRef = ref.split('#')[0].split('?')[0]
+    if (cleanRef && !fs.existsSync(path.resolve(path.dirname(cssFile), cleanRef))) {
+      fail(`CSS resource missing: ${relative(cssFile)} -> ${ref}`)
+    }
+  }
+}
+
 for (const file of customJavaScript) {
   const source = fs.readFileSync(file, 'utf8')
   for (const match of source.matchAll(/\$script\(\s*(?:'([^']+)'|\[([^\]]+)\])/g)) {
