@@ -1,7 +1,7 @@
 
 <div class="page-header">
   <div class="profile-actions">
-    <button ng-show="exportRuleList" ng-click="exportRuleList(profile.name)" title="{{'options_profileExportRuleListHelp' | tr}}" ng-class="exportRuleListOptions.warning ? 'btn-warning' : 'btn-default'" class="btn"><span class="glyphicon glyphicon-list"></span> {{'options_profileExportRuleList' | tr}}
+    <button ng-show="exportRuleList" ng-click="exportRuleList(profile.name)" title="{{'options_profileExportRuleListHelp' | tr}}" class="btn btn-default"><span class="glyphicon glyphicon-list"></span> {{'options_profileExportRuleList' | tr}}
     </button> 
     <button ng-show="scriptable" ng-click="exportScript($event, profile.name)" title="{{'options_exportPacFileHelp' | tr}}" class="btn btn-default"><span class="glyphicon glyphicon-download"></span> {{'options_profileExportPac' | tr}}
     </button> 

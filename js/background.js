@@ -1,5 +1,5 @@
 (function() {
-  var BUILTINSYNCKEY, Log, OmegaTargetCurrent, Promise, dispName, options, startupCheck, upgradeMigrateFn, zeroBackground, _ref,
+  var Log, OmegaTargetCurrent, Promise, dispName, options, startupCheck, upgradeMigrateFn, zeroBackground, _ref,
     __hasProp = {}.hasOwnProperty;
 
   OmegaTargetCurrent = Object.create(OmegaTargetChromium);
@@ -12,8 +12,6 @@
 
   Log = OmegaTargetCurrent.Log;
 
-  BUILTINSYNCKEY = 'zeroOmegaSync';
-
   globalThis.isBrowserRestart = false;
 
   startupCheck = function() {
@@ -24,11 +22,6 @@
   };
 
   options = null;
-
-  // Clear residual first-run flag: tutorial is removed, so the options page
-  // must never auto-open on startup.
-  chrome.storage.local.remove('firstRun');
-  chrome.storage.sync.remove('firstRun');
 
   chrome.runtime.onStartup.addListener(function() {
     return globalThis.isBrowserRestart = true;
@@ -62,7 +55,6 @@
       if (compareVersions.compare(currentVersion, previousVersion, '>')) {
         if (compareVersions.compare('3.3.0', currentVersion, '>')) {
           return options.ready.then(function() {
-            chrome.storage.sync.clear();
             chrome.storage.local.clear();
             return idbKeyval.clear();
           });
@@ -93,7 +85,7 @@
   };
 
   zeroBackground = function(zeroStorage, opts) {
-    var actionForUrl, builtInSyncStorage, charCodeUnderscore, drawContext, drawError, drawIcon, encodeError, external, iconCache, isHidden, proxyImpl, refreshActivePageIfEnabled, resetAllOptions, state, storage, sync, syncStorage, tabs, timeout, unhandledPromises, unhandledPromisesId, unhandledPromisesNextId, _ref1, _ref2;
+    var actionForUrl, charCodeUnderscore, drawContext, drawError, drawIcon, encodeError, external, iconCache, isHidden, proxyImpl, refreshActivePageIfEnabled, resetAllOptions, state, storage, tabs, timeout, unhandledPromises, unhandledPromisesId, unhandledPromisesNextId;
     unhandledPromises = [];
     unhandledPromisesId = [];
     unhandledPromisesNextId = 1;
@@ -277,85 +269,15 @@
     };
     storage = new OmegaTargetCurrent.Storage('local');
     state = new OmegaTargetCurrent.BrowserStorage(zeroStorage, 'omega.local.');
-    if ((typeof chrome !== "undefined" && chrome !== null ? (_ref1 = chrome.storage) != null ? _ref1.sync : void 0 : void 0) || (typeof browser !== "undefined" && browser !== null ? (_ref2 = browser.storage) != null ? _ref2.sync : void 0 : void 0)) {
-      syncStorage = new OmegaTargetCurrent.SyncStorage('sync', state);
-      builtInSyncStorage = new OmegaTargetCurrent.Storage('sync');
-      sync = new OmegaTargetCurrent.OptionsSync(syncStorage, builtInSyncStorage, state);
-      sync.transformValue = OmegaTargetCurrent.Options.transformValueForSync;
-    }
+    state.remove(['syncOptions', 'gistId', 'gistToken', 'syncUsername', 'syncBackendType',
+      'lastGistCommit', 'lastGistSync', 'customCss', 'firstRun', 'web.switchGuide']);
     proxyImpl = OmegaTargetCurrent.proxy.getProxyImpl(Log);
     state.set({
       proxyImplFeatures: proxyImpl.features
     });
-    options = new OmegaTargetCurrent.Options(storage, state, Log, sync, proxyImpl);
+    options = new OmegaTargetCurrent.Options(storage, state, Log, proxyImpl);
     options._actionForUrl = actionForUrl;
     options.initWithOptions(null, startupCheck);
-    options.externalApi = new OmegaTargetCurrent.ExternalApi(options);
-    options.externalApi.listen();
-    if (sync && options && builtInSyncStorage) {
-      builtInSyncStorage.watch([BUILTINSYNCKEY], function(changes, opts) {
-        var builtInSyncConfig, gistId, gistToken, lastGistCommit, stateUpdate, syncBackendType, syncUsername;
-        if (opts == null) {
-          opts = {};
-        }
-        builtInSyncConfig = changes[BUILTINSYNCKEY];
-        if (builtInSyncConfig) {
-          gistId = builtInSyncConfig.gistId, gistToken = builtInSyncConfig.gistToken, lastGistCommit = builtInSyncConfig.lastGistCommit, syncUsername = builtInSyncConfig.syncUsername, syncBackendType = builtInSyncConfig.syncBackendType;
-          stateUpdate = {
-            gistId: gistId,
-            gistToken: gistToken
-          };
-          if (syncUsername != null) {
-            stateUpdate.syncUsername = syncUsername;
-          }
-          if (syncBackendType != null) {
-            stateUpdate.syncBackendType = syncBackendType;
-          }
-          state.set(stateUpdate);
-          if (sync.enabled) {
-            console.log('check gist change', lastGistCommit);
-            sync.init({
-              gistId: gistId,
-              gistToken: gistToken,
-              username: syncUsername,
-              syncBackendType: syncBackendType
-            });
-            return state.get({
-              'lastGistCommit': ''
-            }).then(function(syncConfig) {
-              if (syncConfig.lastGistCommit !== lastGistCommit) {
-                console.log('no match last gist commit, will check change', syncConfig.lastGistCommit);
-                return sync.checkChange();
-              }
-            });
-          } else {
-            return state.get({
-              'syncOptions': '',
-              'lastGistCommit': ''
-            }).then(function(syncConfig) {
-              var _ref3;
-              if (syncConfig.lastGistCommit === lastGistCommit) {
-                return;
-              }
-              if ((_ref3 = syncConfig.syncOptions) === 'pristine' || _ref3 === 'conflict') {
-                return state.set({
-                  syncOptions: 'conflict'
-                }).then(function() {
-                  return options.setOptionsSync(true, {
-                    gistId: gistId,
-                    gistToken: gistToken,
-                    username: syncUsername,
-                    syncBackendType: syncBackendType,
-                    useBuiltInSync: true,
-                    force: true
-                  });
-                });
-              }
-            });
-          }
-        }
-      });
-    }
     tabs = new OmegaTargetCurrent.ChromeTabs(actionForUrl);
     tabs.watch();
     options._inspect = new OmegaTargetCurrent.Inspect(function(url, tab) {
@@ -395,9 +317,6 @@
     timeout = null;
     proxyImpl.watchProxyChange(function(details) {
       var internal, noRevert, notControllableBefore, parsed, reason;
-      if (options.externalApi.disabled) {
-        return;
-      }
       if (!details) {
         return;
       }
@@ -534,20 +453,14 @@
     };
     resetAllOptions = function() {
       return options.ready.then(function() {
-        var logStore, syncStore;
+        var logStore;
         if (typeof options._watchStop === "function") {
           options._watchStop();
         }
-        if (typeof options._syncWatchStop === "function") {
-          options._syncWatchStop();
-        }
         logStore = idbKeyval.createStore('log-store', 'log-store');
-        syncStore = idbKeyval.createStore('sync-store', 'sync');
         return Promise.all([
-          chrome.storage.sync.clear(),
           chrome.storage.local.clear(),
           idbKeyval.clear(logStore),
-          idbKeyval.clear(syncStore),
           idbKeyval.clear()
         ]);
       });

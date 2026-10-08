@@ -236,12 +236,6 @@ a:focus-visible {
   margin-top: var(--space-2);
 }
 
-.io-advanced {
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  background: var(--surface-color);
-}
-
 .omega-file-input {
   position: absolute;
   width: 1px;
@@ -337,12 +331,6 @@ a:focus-visible {
 .rule-tester-result {
   margin: var(--space-3) 0 0;
   font-size: 12px;
-}
-
-.sync-status-value {
-  margin: 0;
-  color: var(--primary-color);
-  font-weight: 600;
 }
 
 .rule-batch-toolbar {

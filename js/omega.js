@@ -348,8 +348,7 @@
 }).call(this);
 
 (function() {
-  angular.module('omega').controller('IoCtrl', function($scope, $rootScope, $window, $http, omegaTarget, downloadFile) {
-    var detectBackendType, getGistId;
+  angular.module('omega').controller('IoCtrl', function($scope, $rootScope, downloadFile) {
     $scope.exportOptions = function() {
       return $rootScope.applyOptionsConfirm().then(function() {
         var blob, content, filename, plainOptions;
@@ -396,13 +395,6 @@
         message: error && error.message ? error.message : 'Invalid backup file!'
       });
     };
-    $scope.downloadError = function() {
-      return $rootScope.showAlert({
-        type: 'error',
-        i18n: 'options_importDownloadError',
-        message: 'Error downloading backup file!'
-      });
-    };
     $scope.triggerFileInput = function() {
       angular.element('#restore-local-file').click();
     };
@@ -413,29 +405,19 @@
 (function() {
   var __hasProp = {}.hasOwnProperty;
 
-  angular.module('omega').controller('MasterCtrl', function($scope, $rootScope, $window, $q, $modal, $state, profileColors, profileIcons, omegaTarget, $timeout, $location, $filter, getAttachedName, isProfileNameReserved, isProfileNameHidden, dispNameFilter, downloadFile, themes, omegaDebug) {
-    var checkFormValid, diff, key, onOptionChange, showFirstRun, tr, type, _ref, _ref1, _ref2;
+  angular.module('omega').controller('MasterCtrl', function($scope, $rootScope, $window, $q, $modal, $state, profileColors, profileIcons, omegaTarget, $timeout, $location, $filter, getAttachedName, isProfileNameReserved, isProfileNameHidden, dispNameFilter, downloadFile, omegaDebug) {
+    var checkFormValid, diff, key, onOptionChange, tr, type, _ref, _ref1, _ref2;
     if (((typeof browser !== "undefined" && browser !== null ? (_ref = browser.proxy) != null ? _ref.register : void 0 : void 0) != null) || ((typeof browser !== "undefined" && browser !== null ? (_ref1 = browser.proxy) != null ? _ref1.registerProxyScript : void 0 : void 0) != null)) {
       $scope.isExperimental = true;
       $scope.pacProfilesUnsupported = true;
     }
     tr = $filter('tr');
     $rootScope.options = null;
-    omegaTarget.state('customCss').then(function(customCss) {
-      if (customCss == null) {
-        customCss = '';
-      }
-      return $scope.customCss = customCss;
-    });
     omegaTarget.addOptionsChangeCallback(function(newOptions) {
       $rootScope.options = angular.copy(newOptions);
       $rootScope.optionsOld = angular.copy(newOptions);
-      omegaTarget.state('syncOptions').then(function(syncOptions) {
-        return $scope.syncOptions = syncOptions;
-      });
       return $timeout(function() {
         $rootScope.optionsDirty = false;
-        return showFirstRun();
       });
     });
     $rootScope.revertOptions = function() {
@@ -842,10 +824,6 @@
     $scope.downloadIntervalI18n = function(interval) {
       return "options_downloadInterval_" + (interval < 0 ? "never" : interval);
     };
-    showFirstRun = function() {
-      // Tutorial removed: first-run welcome dialog disabled.
-      return;
-    };
     return omegaTarget.refresh().then(function() {
       var loadingEl = document.getElementById('app-loading');
       var shellEl = document.getElementById('app-shell');
@@ -1046,10 +1024,8 @@
       return this.$watch(expression, onChange, true);
     };
     $scope.exportRuleList = null;
-    $scope.exportRuleListOptions = null;
-    $scope.setExportRuleListHandler = function(exportRuleList, options) {
-      $scope.exportRuleList = exportRuleList;
-      return $scope.exportRuleListOptions = options;
+    $scope.setExportRuleListHandler = function(exportRuleList) {
+      return $scope.exportRuleList = exportRuleList;
     };
     return unwatch = $scope.$watch((function() {
       var _ref;
@@ -1294,7 +1270,7 @@
   var __hasProp = {}.hasOwnProperty;
 
   angular.module('omega').controller('SwitchProfileCtrl', function($scope, $rootScope, $location, $timeout, $q, $modal, $window, profileIcons, getAttachedName, omegaTarget, trFilter, downloadFile) {
-    var advancedConditionTypesExpanded, attachedReady, attachedReadyDefer, basicConditionTypeSet, basicConditionTypesExpanded, expandGroups, exportLegacyRuleList, exportRuleList, oldLastUpdate, oldRuleList, oldSourceUrl, onAttachedChange, parseOmegaRules, parseSource, rulesReady, rulesReadyDefer, stateEditorKey, stopWatchingForRules, type, unwatchRules, unwatchRulesShowNote, updateHasConditionTypes, _i, _len;
+    var advancedConditionTypesExpanded, attachedReady, attachedReadyDefer, basicConditionTypeSet, basicConditionTypesExpanded, expandGroups, exportRuleList, oldLastUpdate, oldRuleList, oldSourceUrl, onAttachedChange, parseOmegaRules, parseSource, rulesReady, rulesReadyDefer, stateEditorKey, stopWatchingForRules, type, unwatchRules, unwatchRulesShowNote, updateHasConditionTypes, _i, _len;
     $scope.ruleListFormats = OmegaPac.Profiles.ruleListFormats;
     $scope.ruleSelection = {};
     $scope.ruleBatchAll = false;
@@ -1371,35 +1347,6 @@
       });
       fileName = $scope.profile.name.replace(/\W+/g, '_');
       return downloadFile(blob, "OmegaRules_" + fileName + ".sorl");
-    };
-    exportLegacyRuleList = function() {
-      var blob, fileName, i, regexpRules, rule, text, wildcardRules, _i, _len, _ref;
-      wildcardRules = '';
-      regexpRules = '';
-      _ref = $scope.profile.rules;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        rule = _ref[_i];
-        i = '';
-        if (rule.profileName === $scope.attachedOptions.defaultProfileName) {
-          i = '!';
-        }
-        switch (rule.condition.conditionType) {
-          case 'HostWildcardCondition':
-            wildcardRules += i + '@*://' + rule.condition.pattern + '/*' + '\r\n';
-            break;
-          case 'UrlWildcardCondition':
-            wildcardRules += i + '@' + rule.condition.pattern + '\r\n';
-            break;
-          case 'UrlRegexCondition':
-            regexpRules += i + rule.condition.pattern + '\r\n';
-        }
-      }
-      text = "; Summary: Proxy Switchy! Exported Rule List\n; Date: " + (new Date().toLocaleDateString()) + "\n; Website: " + (trFilter('ruleList_usageUrl')) + "\n\n#BEGIN\n\n[wildcard]\n" + wildcardRules + "\n[regexp]\n" + regexpRules + "\n#END";
-      blob = new Blob([text], {
-        type: "text/plain;charset=utf-8"
-      });
-      fileName = $scope.profile.name.replace(/\W+/g, '_');
-      return downloadFile(blob, "SwitchyRules_" + fileName + ".ssrl");
     };
     $scope.conditionHelp = {
       show: $location.search().help === 'condition'
@@ -1498,22 +1445,9 @@
         updateHasConditionTypes();
         $scope.showConditionTypes = $scope.hasConditionTypes;
       }
-      if ($scope.options['-exportLegacyRuleList']) {
-        if ($scope.showConditionTypes > 0) {
-          $scope.setExportRuleListHandler(exportRuleList, {
-            warning: true
-          });
-        } else {
-          $scope.setExportRuleListHandler(exportLegacyRuleList);
-        }
-      } else {
-        $scope.setExportRuleListHandler(exportRuleList);
-      }
+      $scope.setExportRuleListHandler(exportRuleList);
       if ($scope.showConditionTypes === 0) {
         $scope.conditionTypes = basicConditionTypesExpanded;
-        if ($scope.options['-exportLegacyRuleList']) {
-          return $scope.setExportRuleListHandler(exportLegacyRuleList);
-        }
       } else {
         $scope.conditionTypes = advancedConditionTypesExpanded;
         if ($scope.options["-showConditionTypes"] == null) {
@@ -1911,11 +1845,7 @@
       if (opts != null ? opts.editSource : void 0) {
         return $scope.toggleSource();
       } else {
-        // Tutorial removed: switch profile guide disabled.
-        $scope.loadRules = true;
-        return $q.all([rulesReady]).then(function() {
-          return void 0;
-        });
+        return $scope.loadRules = true;
       }
     });
     $scope.addHeader = function() {

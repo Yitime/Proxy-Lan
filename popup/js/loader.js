@@ -2,7 +2,6 @@ window.OmegaPopup = {};
 $script(['js/index.js', 'js/profiles.js', 'js/keyboard.js'], 'om-main');
 $script(['js/i18n.js']);
 $script('../js/omega_target_popup.js', 'om-target', function() {
-  $script('js/style.js', 'om-style')
   function init(){
     chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs){
       if (tabs && tabs.length > 0 && (tabs[0].pendingUrl || tabs[0].url)){
@@ -27,7 +26,6 @@ $script('../js/omega_target_popup.js', 'om-target', function() {
       'proxyNotControllable',
       'externalProfile',
       'showExternalProfile',
-      'customCss',
     ], function(err, state) {
       window.OmegaPopup.state = state;
       $script.done('om-state');

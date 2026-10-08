@@ -1,9 +1,7 @@
 (function() {
-  var logStore, syncStore, waitTimeFn;
+  var logStore, waitTimeFn;
 
   logStore = idbKeyval.createStore('log-store', 'log-store');
-
-  syncStore = idbKeyval.createStore('sync-store', 'sync');
 
   waitTimeFn = function(timeout) {
     if (timeout == null) {
@@ -64,7 +62,7 @@
             return;
           }
           localStorage.clear();
-          Promise.all([idbKeyval.clear(logStore), idbKeyval.clear(syncStore), waitTimeFn(2000)])
+          Promise.all([idbKeyval.clear(logStore), waitTimeFn(2000)])
             .then(function() {
               return idbKeyval.clear();
             })

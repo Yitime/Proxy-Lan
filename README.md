@@ -17,7 +17,7 @@
 
 ```powershell
 node scripts/validate.mjs
-node --test tests/utils.test.mjs tests/options-navigation.test.mjs
+node --test tests/utils.test.mjs tests/options-navigation.test.mjs tests/options-io.test.mjs tests/core-runtime.test.mjs
 ```
 
 也可以使用：
@@ -28,6 +28,8 @@ node --run test
 ```
 
 检查内容包括 JavaScript 语法、JSON、Manifest 资源、HTML 本地引用、国际化 key，以及后台消息方法白名单。
+
+配置保存在本地，可通过 JSON 文件备份和恢复。旧版备份导入时会清理同步标记、自定义样式和旧格式导出设置，保留代理模式与规则。规则统一导出为 `.sorl` 格式。
 
 ## 主要目录
 

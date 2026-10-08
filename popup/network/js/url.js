@@ -172,7 +172,6 @@ const getState = ()=>{
       'externalProfile',
       'showExternalProfile',
       'lastProfileNameForCondition',
-      'customCss',
     ], function(err, state) {
       if (err) {
         reject(err instanceof Error ? err : new Error(err.message || String(err)));

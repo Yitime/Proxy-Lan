@@ -367,9 +367,6 @@ main .ng-enter-active {
 .switch-attached > tr > td {
   background-color: #f9f9f9;
 }
-.shepherd-active .switch-attached > tr > td {
-  background-color: transparent;
-}
 .switch-attached > tr > td:first-child {
   text-align: center;
 }

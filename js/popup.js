@@ -132,12 +132,6 @@
 
   module.controller('PopupCtrl', function($scope, $window, $q, omegaTarget, profileIcons, profileOrder, dispNameFilter, getVirtualTarget) {
     var generateConditionSuggestion, generateDomainInfos, preselectedProfileNameForCondition, refresh, refreshOnProfileChange;
-    omegaTarget.state('customCss').then(function(customCss) {
-      if (customCss == null) {
-        customCss = '';
-      }
-      return $scope.customCss = customCss;
-    });
     $scope.closePopup = function() {
       return $window.top.close();
     };
